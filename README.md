@@ -15,22 +15,4 @@ Tim SiLogisMPL
 7. Alexandra Yohana Daris Naibaho (103012330136) - UI/UX Designer & Lead Front-end Developer
 
 # Deskripsi Proyek
-CV. Mandiri Perkasa Logistik merupakan perusahaan jasa pengantaran barang yang
-saat ini belum memiliki platform digital untuk mendukung operasional bisnis dan
-pelayanan pelanggannya. Proses pemesanan layanan masih dilakukan secara manual
-dan langsung, sehingga menghambat efisiensi serta keterjangkauan layanan bagi
-pelanggan yang tersebar di berbagai lokasi.
-Proyek Computing Project ini mengusulkan pengembangan sebuah situs web penunjang layanan pengantaran barang yang terintegrasi untuk CV. Mandiri Perkasa Logistik. Platform ini dirancang untuk memudahkan pelanggan (individu maupun bisnis) dalam melakukan
-pemesanan jasa secara online, memantau status pengiriman secara real-time, serta
-menyimpan dokumen pengiriman melalui fitur cloud storage dan menghubungi
-perusahaan melalui kontak WhatsApp.
-Sistem yang dibangun mencakup dua sisi pengguna, yaitu customer dan admin.
-Fitur utama meliputi company profile, form pemesanan, informasi jenis kendaraan,
-halaman status pemesanan, history pemesanan, review pelanggan, serta panel admin
-untuk verifikasi dan pengelolaan sistem. Metodologi pengembangan menggunakan
-pendekatan Agile dengan tumpukan teknologi berbasis web modern.
-Proyek ini diharapkan selesai dalam satu semester dan menghasilkan produk berupa
-aplikasi web yang siap digunakan, disertai dokumentasi lengkap meliputi SRS, SDD,
-UAT, dan laporan akhir. Manfaat utama yang ditargetkan adalah peningkatan efisiensi
-operasional, perluasan jangkauan pelanggan, dan peningkatan transparansi proses
-logistik bagi CV. Mandiri Perkasa Logistik.
+CV. Mandiri Perkasa Logistik saat ini masih menjalankan proses pemesanan secara manual, sehingga kurang efisien dan membatasi jangkauan layanan. Proyek ini mengusulkan pengembangan website terintegrasi untuk memudahkan pelanggan melakukan pemesanan online, melacak pengiriman secara real-time, menyimpan dokumen, dan menghubungi perusahaan. Sistem memiliki dua pengguna utama (customer dan admin) dengan fitur seperti company profile, pemesanan, status dan riwayat pengiriman, review, serta panel admin. Pengembangan menggunakan metode Agile dan ditargetkan selesai dalam satu semester, dengan output berupa aplikasi web lengkap beserta dokumentasi. Tujuan utamanya adalah meningkatkan efisiensi operasional, memperluas jangkauan pelanggan, dan meningkatkan transparansi layanan.
