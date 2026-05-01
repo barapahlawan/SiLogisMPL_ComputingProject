@@ -3,7 +3,7 @@
 </p>
 
 # SiLogisMPL
-**Proyek Komputasi S-1 Informatika Kelompok 15 Kelas IF-47-GABUP.04 Universitas Telkom
+** Proyek Komputasi S-1 Informatika Kelompok 15 Kelas IF-47-GABUP.04 Universitas Telkom
 
 Tim SiLogisMPL
 1. Muhammad Akbar Putra Pahlawan (103012330227) - Project Manager & Business and System Analyst
