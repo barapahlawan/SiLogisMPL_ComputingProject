@@ -1,6 +1,0 @@
-Frontend_Admin/node_modules/
-Frontend_User/node_modules/
-.DS_Store
-**/node_modules/
-**/.DS_Store
-.env
