@@ -83,7 +83,7 @@ public class OrderController {
                                 .build();
         }
 
-        @PatchMapping("/{id}/{statusPengiriman}")
+        @PatchMapping("/{id}/pengiriman/{statusPengiriman}")
         @PreAuthorize("hasRole('ADMIN')")
         public WebResponse<String> updateStatusPengiriman(@PathVariable("id") Long id,
                         @PathVariable("statusPengiriman") String statusPengiriman) {
