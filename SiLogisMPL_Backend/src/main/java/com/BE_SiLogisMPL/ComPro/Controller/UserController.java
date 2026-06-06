@@ -1,0 +1,190 @@
+package com.BE_SiLogisMPL.ComPro.Controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.BE_SiLogisMPL.ComPro.DTO.AdminDashboard;
+import com.BE_SiLogisMPL.ComPro.DTO.AdminProfileDTO;
+import com.BE_SiLogisMPL.ComPro.DTO.CompanyProfileDTO;
+import com.BE_SiLogisMPL.ComPro.DTO.UserProfileDTO;
+import com.BE_SiLogisMPL.ComPro.DTO.WebResponse;
+import com.BE_SiLogisMPL.ComPro.Entity.CompanyProfile;
+import com.BE_SiLogisMPL.ComPro.Entity.User;
+import com.BE_SiLogisMPL.ComPro.Entity.UserNotifikasi;
+import com.BE_SiLogisMPL.ComPro.Service.UserService;
+
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("user")
+public class UserController {
+
+        @Autowired
+        private UserService userService;
+
+        @GetMapping("/admin/dashboard")
+        @PreAuthorize("hasRole('ADMIN')")
+        public WebResponse<AdminDashboard> viewDashboard() {
+                AdminDashboard token = userService.viewDashboard();
+                return WebResponse.<AdminDashboard>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @PatchMapping("/edit/profile")
+        @PreAuthorize("hasRole('USER')")
+        public WebResponse<String> editProfile(@RequestBody UserProfileDTO userProfileDTO,
+                        Authentication authentication) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                String token = userService.editProfile(userProfileDTO, username);
+                return WebResponse.<String>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @PatchMapping("/edit/alamat")
+        @PreAuthorize("hasRole('USER')")
+        public WebResponse<String> editAlamat(@RequestBody UserProfileDTO userProfileDTO,
+                        Authentication authentication) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                String token = userService.editAlamat(userProfileDTO, username);
+                return WebResponse.<String>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @GetMapping("/profile")
+        @PreAuthorize("hasRole('USER')")
+        public WebResponse<User> viewProfile(Authentication authentication) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                User token = userService.viewProfile(username);
+                return WebResponse.<User>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @PatchMapping("/admin/edit/profile")
+        @PreAuthorize("hasRole('ADMIN')")
+        public WebResponse<String> editProfileAdmin(@RequestBody AdminProfileDTO adminProfileDTO,
+                        Authentication authentication) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                String token = userService.editProfileAdmin(adminProfileDTO, username);
+                return WebResponse.<String>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @GetMapping("/admin/profile")
+        @PreAuthorize("hasRole('ADMIN')")
+        public WebResponse<User> viewProfileAdmin(Authentication authentication) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                User token = userService.viewProfileAdmin(username);
+                return WebResponse.<User>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @PatchMapping("/admin/edit/companyprofile")
+        @PreAuthorize("hasRole('ADMIN')")
+        public WebResponse<String> editCompanyProfile(@Valid @RequestBody CompanyProfileDTO companyProfileDTO,
+                        Authentication authentication) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                String token = userService.editCompanyProfile(companyProfileDTO, username);
+                return WebResponse.<String>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @GetMapping("/admin/companyprofile")
+        @PreAuthorize("hasRole('ADMIN')")
+        public WebResponse<CompanyProfile> viewAdminCompanyProfile(Authentication authentication) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                CompanyProfile token = userService.viewAdminCompanyProfile(username);
+                return WebResponse.<CompanyProfile>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @PatchMapping(value = "/admin/edit/profilepicture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @PreAuthorize("hasRole('ADMIN')")
+        public WebResponse<String> editProfilePicture(@ModelAttribute MultipartFile file,
+                        Authentication authentication) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                String token = userService.editProfilePicture(file, username);
+                return WebResponse.<String>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @GetMapping("/notifikasi")
+        @PreAuthorize("hasRole('USER')")
+        public WebResponse<UserNotifikasi> viewNotifikasi(Authentication authentication) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                UserNotifikasi token = userService.viewNotifikasi(username);
+                return WebResponse.<UserNotifikasi>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @GetMapping("/companyprofile")
+        @PreAuthorize("hasRole('USER')")
+        public WebResponse<CompanyProfile> viewUserCompanyProfile(Authentication authentication) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                CompanyProfile token = userService.viewUserCompanyProfile(username);
+                return WebResponse.<CompanyProfile>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+}
