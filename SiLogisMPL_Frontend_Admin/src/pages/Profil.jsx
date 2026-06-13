@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useData } from "../contexts/DataContext";
 import { useAuth } from "../contexts/AuthContext";
+import { api } from "../lib/api.js";
 import { Button } from "../components/ui/button";
 import { Pencil } from "lucide-react";
 
@@ -14,24 +15,34 @@ export default function Profil() {
 
   const handleSave = async () => {
     setLoading(true);
+    try {
+      await api.patch("/user/admin/edit/profile", {
+        username: form.name,
+        email: form.email,
+        noTelepon: form.phone,
+      });
 
-    // Simulasi async (ganti dengan API call kalau sudah ada backend)
-    await new Promise((r) => setTimeout(r, 500));
+      // 1. Update DataContext
+      setProfile(form);
 
-    // 1. Update DataContext
-    setProfile(form);
+      // 2. Sync ke AuthContext supaya sidebar otomatis update
+      setUser((prev) => ({
+        ...prev,
+        name: form.name,
+        role: form.role,
+      }));
 
-    // 2. Sync ke AuthContext supaya sidebar otomatis update
-    setUser((prev) => ({
-      ...prev,
-      name: form.name,
-      role: form.role,
-    }));
-
-    setLoading(false);
-
-    // 3. Tampilkan modal sukses
-    setShowSuccess(true);
+      // 3. Tampilkan modal sukses
+      setShowSuccess(true);
+    } catch (err) {
+      // Fallback: update lokal saja kalau API gagal
+      setProfile(form);
+      setUser((prev) => ({ ...prev, name: form.name, role: form.role }));
+      setShowSuccess(true);
+      console.warn("Profil disimpan lokal saja:", err?.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

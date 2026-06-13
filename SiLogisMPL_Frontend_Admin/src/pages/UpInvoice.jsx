@@ -149,8 +149,7 @@ export default function UpInvoice() {
     if (!file) { toast.error("Pilih file terlebih dahulu"); return; }
     try {
       setLoading(true);
-      await new Promise((res) => setTimeout(res, 800));
-      setInvoiceUploaded(order.id);
+      await setInvoiceUploaded(order.id, file);
       setSuccess(true);
     } catch {
       toast.error("Gagal upload invoice");

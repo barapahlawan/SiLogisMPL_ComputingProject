@@ -1,7 +1,7 @@
 // Mock data — easily swappable with real backend responses later.
 export const MOCK_ORDERS = [
   {
-    id: "LGA-29402",
+    id: "LGD-29402",
     customer: "PT. Samudera Raya",
     initials: "PT",
     avatarColor: "bg-amber-100 text-amber-700",
@@ -19,7 +19,7 @@ export const MOCK_ORDERS = [
     sender: { name: "PT AKU CINTA KAMU", pic: "DONI SIHOMBING", phone: "083345627189" },
     receiver: { name: "PT AKU TOLAK KAMU", pic: "RISTI SITUMEANG", phone: "089976543215" },
     cargo: { title: "Sparepart Otomotif & Mesin", weight: "2.450 KG", packageType: "Ban", totalPackage: "1" },
-    vehicle: { type: "Truck", capacity: "4.000 Kg", image: "https://images.unsplash.com/photo-1566576721346-d4a3b4eaeb55?w=400&h=300&fit=crop" },
+    vehicle: { type: "Truck", capacity: "4.000 Kg", image: "/images/isuzu-truck.jpg" },
     route: {
       pickup: { city: "Jakarta Utara", name: "Kawasan Industri Pulogadung", address: "Blok C No. 12, Pergudangan Logistics, Jakarta 13920" },
       dropoff: { city: "Surabaya", name: "Margomulyo Permai", address: "Jl. Greges Jaya II, Pergudangan B-14, Surabaya 60183" },
@@ -27,7 +27,7 @@ export const MOCK_ORDERS = [
     driver: { name: "", plate: "" },
   },
   {
-    id: "LGA-29405",
+    id: "LGD-29405",
     customer: "Andi Maulana",
     initials: "AM",
     avatarColor: "bg-gray-200 text-gray-700",
@@ -45,7 +45,7 @@ export const MOCK_ORDERS = [
     sender: { name: "PT Maju Jaya", pic: "BUDI SANTOSO", phone: "081234567890" },
     receiver: { name: "Toko Retail Semarang", pic: "WAHYU PUTRA", phone: "082234567891" },
     cargo: { title: "Elektronik Rumah Tangga", weight: "850 KG", packageType: "Box", totalPackage: "12" },
-    vehicle: { type: "Truck", capacity: "2.000 Kg", image: "https://images.unsplash.com/photo-1591768793355-74d04bb6608f?w=400&h=300&fit=crop" },
+    vehicle: { type: "Truck", capacity: "2.000 Kg", image: "/images/isuzu-truck.jpg" },
     route: {
       pickup: { city: "Jakarta Timur", name: "Cakung Industrial", address: "Jl. Cakung Cilincing, Jakarta 13910" },
       dropoff: { city: "Semarang", name: "Gudang Tanah Mas", address: "Jl. Tanah Mas Raya, Semarang 50177" },
@@ -53,7 +53,7 @@ export const MOCK_ORDERS = [
     driver: { name: "", plate: "" },
   },
   {
-    id: "LGA-29408",
+    id: "LGD-29408",
     customer: "Global Food Corp",
     initials: "GF",
     avatarColor: "bg-amber-100 text-amber-700",
@@ -79,7 +79,7 @@ export const MOCK_ORDERS = [
     driver: { name: "", plate: "" },
   },
   {
-    id: "LGA-29412",
+    id: "LGD-29412",
     customer: "Eka Lestari",
     initials: "EL",
     avatarColor: "bg-gray-200 text-gray-700",
@@ -97,7 +97,7 @@ export const MOCK_ORDERS = [
     sender: { name: "CV Sejahtera", pic: "EKA LESTARI", phone: "083344556677" },
     receiver: { name: "Toko Bandung", pic: "DEWI ANGGRAINI", phone: "084455667788" },
     cargo: { title: "Pakaian & Tekstil", weight: "320 KG", packageType: "Karung", totalPackage: "20" },
-    vehicle: { type: "Pickup", capacity: "1.000 Kg", image: "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&h=300&fit=crop" },
+    vehicle: { type: "Pickup", capacity: "1.000 Kg", image: "/images/pickup-truck.jpg" },
     route: {
       pickup: { city: "Jakarta Barat", name: "Tanah Abang Center", address: "Pasar Tanah Abang Blok A, Jakarta 10250" },
       dropoff: { city: "Bandung", name: "Pasar Baru Bandung", address: "Jl. Otto Iskandar Dinata, Bandung 40117" },

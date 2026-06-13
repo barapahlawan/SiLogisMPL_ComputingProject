@@ -1,14 +1,24 @@
 import { useNavigate } from "react-router-dom";
-import { ClipboardList, Truck } from "lucide-react";
+import { ClipboardList, Truck, Loader2 } from "lucide-react";
 import { useData } from "../contexts/DataContext";
 import { Button } from "../components/ui/button";
 
 export default function Dashboard() {
-  const { orders } = useData();
+  const { orders, dashboardStats, ordersLoading } = useData();
   const navigate = useNavigate();
 
-  const pending = orders.filter((o) => !o.verified).length;
-  const ongoing = 156;
+  // Gunakan data dari backend (dashboardStats) kalau ada, fallback ke hitung lokal
+  const pending =
+    dashboardStats?.pendingOrders ??
+    dashboardStats?.pesananTertunda ??
+    orders.filter((o) => !o.verified).length;
+
+  const ongoing =
+    dashboardStats?.ongoingOrders ??
+    dashboardStats?.pengirimanBerjalan ??
+    dashboardStats?.ongoing ??
+    orders.filter((o) => o.deliveryStatus === "Dalam Perjalanan").length;
+
   const recent = orders.slice(0, 3);
 
   return (
@@ -23,7 +33,9 @@ export default function Dashboard() {
             <span className="text-[10px] font-bold tracking-wider text-[#FFA000] bg-[#FEF3C7] px-2.5 py-1 rounded">PRIORITAS</span>
           </div>
           <div className="mt-6">
-            <div className="text-5xl font-extrabold text-gray-900">{pending}</div>
+            <div className="text-5xl font-extrabold text-gray-900">
+              {ordersLoading ? <Loader2 className="w-8 h-8 animate-spin text-gray-300" /> : pending}
+            </div>
             <div className="text-[11px] tracking-[0.18em] uppercase text-gray-400 mt-2 font-semibold">Pesanan Tertunda</div>
           </div>
           <div className="mt-6 flex items-center gap-2 text-xs text-gray-500">
@@ -38,7 +50,9 @@ export default function Dashboard() {
             <Truck className="w-5 h-5 text-[#FFA000]" />
           </div>
           <div className="mt-6">
-            <div className="text-5xl font-extrabold">{ongoing}</div>
+            <div className="text-5xl font-extrabold">
+              {ordersLoading ? <Loader2 className="w-8 h-8 animate-spin text-gray-500" /> : ongoing}
+            </div>
             <div className="text-[11px] tracking-[0.18em] uppercase text-gray-400 mt-2 font-semibold">Pengiriman Berjalan</div>
           </div>
           <div className="mt-6 flex items-center gap-2 text-xs text-gray-300">
@@ -61,45 +75,57 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div className="grid grid-cols-[1.3fr_1.5fr_1.5fr_1fr_120px] gap-4 pb-3 border-b border-gray-100 mpl-table-header">
-        <div className="text-center">ID Pesanan</div>
-        <div className="text-center">Tujuan</div>
-        <div className="text-center">Nama Pelanggan</div>
-        <div className="text-center">No Telephone</div>
-        <div className="text-center">Tindakan</div>
-      </div>
-
-        <div className="divide-y divide-gray-100">
-        {recent.map((o) => (
-          <div key={o.id} className="grid grid-cols-[1.3fr_1.5fr_1.5fr_1fr_120px] gap-4 py-5 items-center" data-testid={`order-row-${o.id}`}>
-            <div className="text-left pl-4">
-              <div className="font-bold text-gray-900">#{o.id}</div>
-              <div className="text-xs text-gray-400 mt-0.5">{o.cargoType} • {o.weight}</div>
-            </div>
-            <div className="text-left pl-10">
-              <div className="text-sm text-gray-900">{o.destination}</div>
-              <div className="text-xs text-gray-400 mt-0.5">{o.destLabel}</div>
-            </div>
-            <div className="flex items-center gap-3 pl-4">
-              <div className={`w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-[11px] font-bold ${o.avatarColor}`}>
-                {o.initials}
-              </div>
-              <div className="text-sm text-gray-900 leading-tight">{o.customer}</div>
-            </div>
-            <div className="text-sm text-gray-700 text-center">{o.phone}</div>
-            <div className="text-center">
-              <Button
-              onClick={() => navigate(`/pesanan/${o.id}/verifikasi`)}
-              data-testid={`verifikasi-btn-${o.id}`}
-              className="h-9 px-5 text-[11px] tracking-wider text-white rounded-md"
-              style={{ backgroundColor: '#FFA000' }}
-            >
-              VERIFIKASI
-            </Button>
-            </div>
+        {ordersLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-gray-300" />
           </div>
-        ))}
-      </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-[1.3fr_1.5fr_1.5fr_1fr_120px] gap-4 pb-3 border-b border-gray-100 mpl-table-header">
+              <div className="text-center">ID Pesanan</div>
+              <div className="text-center">Tujuan</div>
+              <div className="text-center">Nama Pelanggan</div>
+              <div className="text-center">No Telephone</div>
+              <div className="text-center">Tindakan</div>
+            </div>
+
+            <div className="divide-y divide-gray-100">
+              {recent.length === 0 ? (
+                <div className="text-center text-gray-400 text-sm py-10">Belum ada pesanan</div>
+              ) : (
+                recent.map((o) => (
+                  <div key={o.id} className="grid grid-cols-[1.3fr_1.5fr_1.5fr_1fr_120px] gap-4 py-5 items-center" data-testid={`order-row-${o.id}`}>
+                    <div className="text-left pl-4">
+                      <div className="font-bold text-gray-900">#{o.id}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">{o.cargoType} • {o.weight}</div>
+                    </div>
+                    <div className="text-left pl-10">
+                      <div className="text-sm text-gray-900">{o.destination}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">{o.destLabel}</div>
+                    </div>
+                    <div className="flex items-center gap-3 pl-4">
+                      <div className={`w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-[11px] font-bold ${o.avatarColor}`}>
+                        {o.initials}
+                      </div>
+                      <div className="text-sm text-gray-900 leading-tight">{o.customer}</div>
+                    </div>
+                    <div className="text-sm text-gray-700 text-center">{o.phone}</div>
+                    <div className="text-center">
+                      <Button
+                        onClick={() => navigate(`/pesanan/${o.id}/verifikasi`)}
+                        data-testid={`verifikasi-btn-${o.id}`}
+                        className="h-9 px-5 text-[11px] tracking-wider text-white rounded-md"
+                        style={{ backgroundColor: '#FFA000' }}
+                      >
+                        VERIFIKASI
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

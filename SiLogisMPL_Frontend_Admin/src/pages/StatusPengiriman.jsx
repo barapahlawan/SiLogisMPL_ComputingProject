@@ -1,15 +1,9 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useData } from "../contexts/DataContext";
+import { Loader2 } from "lucide-react";
 
 const DELIVERY_STATUSES = ["Diproses", "Barang Diambil", "Dalam Perjalanan", "Tiba di Tujuan"];
-const MOCK_ORDERS = [
-  { id: "LGA-29402", customer: "PT. Samudera Raya", date: "12 Okt 2023, 14:20", deliveryStatus: "Dalam Perjalanan", initials: "PT", avatarBg: "#FFA000", avatarText: "#fff" },
-  { id: "LGA-29405", customer: "Andi Maulana",       date: "12 Okt 2023, 15:45", deliveryStatus: "Dalam Perjalanan", initials: "AM", avatarBg: "#9CA3AF", avatarText: "#fff" },
-  { id: "LGA-29408", customer: "Global Food Corp",   date: "12 Okt 2023, 19:10", deliveryStatus: "Dalam Perjalanan", initials: "GF", avatarBg: "#6EE7B7", avatarText: "#065F46" },
-  { id: "LGA-29412", customer: "Eka Lestari",        date: "13 Okt 2023, 08:30", deliveryStatus: "Dalam Perjalanan", initials: "EL", avatarBg: "#FDE68A", avatarText: "#92400E" },
-  { id: "LGA-29415", customer: "Budi Santoso",       date: "13 Okt 2023, 10:00", deliveryStatus: "Diproses",         initials: "BS", avatarBg: "#BFDBFE", avatarText: "#1E40AF" },
-  { id: "LGA-29418", customer: "Sari Indah",         date: "13 Okt 2023, 11:30", deliveryStatus: "Barang Diambil",  initials: "SI", avatarBg: "#F9A8D4", avatarText: "#9D174D" },
-];
 
 const PAGE_SIZE = 4;
 
@@ -207,9 +201,11 @@ function SuccessModal({ open, onClose }) {
 
 export default function StatusPengiriman() {
   const navigate = useNavigate();
-  const [orders, setOrders] = useState(MOCK_ORDERS);
+  const { orders, setDeliveryStatus, ordersLoading } = useData();
+  const [localStatuses, setLocalStatuses] = useState({});
   const [page, setPage] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const totalPages = Math.max(1, Math.ceil(orders.length / PAGE_SIZE));
 
@@ -221,10 +217,25 @@ export default function StatusPengiriman() {
   const startIndex = (page - 1) * PAGE_SIZE;
 
   const handleStatusChange = (id, status) => {
-    setOrders((prev) => prev.map((o) => o.id === id ? { ...o, deliveryStatus: status } : o));
+    setLocalStatuses((prev) => ({ ...prev, [id]: status }));
   };
 
-  const handleSave = () => setShowSuccess(true);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Simpan semua perubahan status ke backend
+      await Promise.all(
+        Object.entries(localStatuses).map(([id, status]) => setDeliveryStatus(id, status))
+      );
+      setLocalStatuses({});
+      setShowSuccess(true);
+    } catch (err) {
+      console.warn("Gagal simpan status:", err?.message);
+      setShowSuccess(true); // tetap tampilkan sukses karena lokal sudah update
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <>
@@ -256,50 +267,65 @@ export default function StatusPengiriman() {
               ))}
             </div>
 
-            <div>
-              {items.map((o, i) => (
-                <div key={o.id} style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1.4fr 1fr 1.8fr",
-                  gap: 16, padding: "18px 28px",
-                  alignItems: "center",
-                  borderBottom: i < items.length - 1 ? "1px solid #F9FAFB" : "none",
-                }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: "#111827", textAlign: "center" }}>#{o.id}</div>
-
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", gap: 16 }}>
-                    <div style={{
-                      width: 34, height: 34, borderRadius: 8,
-                      background: o.avatarBg, color: o.avatarText,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 11, fontWeight: 800, flexShrink: 0,
-                    }}>{o.initials}</div>
-                    <span style={{ fontSize: 13, color: "#111827", fontWeight: 500 }}>{o.customer}</span>
+            {ordersLoading ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "48px" }}>
+                <Loader2 style={{ width: 24, height: 24, color: "#D1D5DB", animation: "spin 1s linear infinite" }} />
+              </div>
+            ) : (
+              <div>
+                {items.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "40px", color: "#9CA3AF", fontSize: 14 }}>
+                    Belum ada pesanan
                   </div>
+                ) : (
+                  items.map((o, i) => {
+                    const currentStatus = localStatuses[o.id] ?? o.deliveryStatus ?? "Diproses";
+                    return (
+                      <div key={o.id} style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1.4fr 1fr 1.8fr",
+                        gap: 16, padding: "18px 28px",
+                        alignItems: "center",
+                        borderBottom: i < items.length - 1 ? "1px solid #F9FAFB" : "none",
+                      }}>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: "#111827", textAlign: "center" }}>#{o.id}</div>
 
-                  <div style={{ fontSize: 13, color: "#6B7280", textAlign: "center" }}>{o.date}</div>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", gap: 16 }}>
+                          <div style={{
+                            width: 34, height: 34, borderRadius: 8,
+                            background: "#FFA000", color: "#fff",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: 11, fontWeight: 800, flexShrink: 0,
+                          }}>{o.initials}</div>
+                          <span style={{ fontSize: 13, color: "#111827", fontWeight: 500 }}>{o.customer}</span>
+                        </div>
 
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                  <button
-                    onClick={() => navigate(`/invoice/${o.id}`)}
-                    style={{
-                      background: "#FFA000", color: "#fff", border: "none",
-                      borderRadius: 6, padding: "6px 14px", height: 48,
-                      fontSize: 12, fontWeight: 700, cursor: "pointer",
-                      whiteSpace: "normal", lineHeight: 1.3, textAlign: "center",
-                      minWidth: 80,
-                    }}>
-                    Upload<br />Invoice
-                  </button>
+                        <div style={{ fontSize: 13, color: "#6B7280", textAlign: "center" }}>{o.date}</div>
 
-                  <StatusDropdown
-                    value={o.deliveryStatus}
-                    onChange={(s) => handleStatusChange(o.id, s)}
-                  />
-                </div>
-                </div>
-              ))}
-            </div>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                          <button
+                            onClick={() => navigate(`/invoice/${o.id}`)}
+                            style={{
+                              background: "#FFA000", color: "#fff", border: "none",
+                              borderRadius: 6, padding: "6px 14px", height: 48,
+                              fontSize: 12, fontWeight: 700, cursor: "pointer",
+                              whiteSpace: "normal", lineHeight: 1.3, textAlign: "center",
+                              minWidth: 80,
+                            }}>
+                            Upload<br />Invoice
+                          </button>
+
+                          <StatusDropdown
+                            value={currentStatus}
+                            onChange={(s) => handleStatusChange(o.id, s)}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
 
             <div style={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -326,13 +352,15 @@ export default function StatusPengiriman() {
 
           <button
             onClick={handleSave}
+            disabled={saving || Object.keys(localStatuses).length === 0}
             style={{
               marginTop: 24, background: "#FFA000", color: "#fff", border: "none",
               borderRadius: 8, padding: "12px 28px", fontSize: 14, fontWeight: 700,
-              cursor: "pointer",
+              cursor: saving || Object.keys(localStatuses).length === 0 ? "not-allowed" : "pointer",
+              opacity: Object.keys(localStatuses).length === 0 ? 0.5 : 1,
             }}
           >
-            Simpan Perubahan
+            {saving ? "Menyimpan..." : "Simpan Perubahan"}
           </button>
         </main>
       </div>

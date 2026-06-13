@@ -1,4 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, createContext, useContext } from "react";
+import { api } from "../lib/api";
+
+const CompanyFormContext = createContext(null);
+const useCompanyForm = () => useContext(CompanyFormContext);
 import { toast } from "sonner";
 import { UploadCloud, Trash2, Check } from "lucide-react";
 
@@ -111,6 +115,84 @@ export default function ProfilPerusahaan() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  const [heroForm, setHeroForm] = useState({
+    headline1: "MANDIRI",
+    headline2: "PERKASA",
+    headline3: "LOGISTIK",
+    tagline: "Solusi logistik terpercaya untuk pengiriman dalam kota maupun luar kota. Kami memastikan armada kami selalu siap mendukung mobilitas bisnis Anda dengan proses industri.",
+    ctaText: "Hubungi Kami",
+    stat1: "2+",
+    statLabel1: "Tahun Berdiri",
+    stat2: "20+",
+    statLabel2: "Unit Armada",
+    badgeText: "100% Aman & Terjamin",
+    imgUrl: "",
+    altText: "Armada truck Mandiri Perkasa Logistik"
+  });
+  const [siapaKamiForm, setSiapaKamiForm] = useState({
+    judulSeksi: "Siapa Kami?",
+    paragrafUtama: "PT Mandiri Perkasa Logistik adalah perusahaan jasa pengiriman dan distribusi barang yang berdiri sejak lebih dari satu dekade lalu. Berbasis di Sulawesi, kami melayani pengiriman dalam skala nasional dengan standar industri.",
+    paragrafLanjutan: "Dipercaya oleh ribuan industri lokal, kami mengintegrasikan teknologi LOGIS-CORE untuk memonitor transparansi data secara real-time, efisien dan akurat. Pengelolaan biaya tanpa kompleksiti.",
+    label1: "Berdiri Sejak",
+    value1: "2024",
+    label2: "Kantor Pusat",
+    value2: "Kota Kendari, Sulawesi",
+    label3: "Teknologi",
+    value3: "Platform LOGIS-CORE dengan telemetri dan IoT terintegrasi",
+    label4: "Armada",
+    value4: "20++"
+  });
+  const [visiMisiForm, setVisiMisiForm] = useState({
+    visi: {
+      nomor: "01",
+      judul: "Visi Kami",
+      poins: [
+        { id: 1, text: "Menjadi perusahaan jasa pengantaran barang yang terpercaya dan profesional dalam mendukung kebutuhan pengiriman barang bagi individu maupun perusahaan." }
+      ]
+    },
+    misi: {
+      nomor: "02",
+      judul: "Misi Kami",
+      poins: [
+        { id: 1, text: "Memberikan layanan pengantaran barang yang aman, tepat waktu, dan terpercaya." },
+        { id: 2, text: "Menjalin kerja sama yang baik dengan berbagai perusahaan dan mitra bisnis dalam proses pengiriman barang." },
+        { id: 3, text: "Menyediakan pilihan kendaraan yang sesuai dengan kebutuhan pengiriman anda." },
+        { id: 4, text: "Memberikan pelayanan yang profesional dan responsif kepada customer" },
+        { id: 5, text: "Mempermudah proses pemesanan dan informasi pengiriman melalui platform digital" }
+      ]
+    }
+  });
+  const [nilaiForm, setNilaiForm] = useState({
+    judulSeksi: "Nilai-Nilai Perusahaan",
+    items: [
+      { id: 1, nomor: "01", nama: "Kepercayaan", icon: "ti-shield-check", warna: "Amber (default)", desc: "Membangun hubungan klien melalui komitmen transparan dan terverifikasi dalam setiap layanan pelayanan." },
+      { id: 2, nomor: "02", nama: "Presisi", icon: "ti-target", warna: "Teal", desc: "Setiap pengiriman dilakukan dengan ketepatan waktu dan akurasi data yang tak terkompromi." },
+      { id: 3, nomor: "03", nama: "Kolaborasi", icon: "ti-users", warna: "Blue", desc: "Bersama mitra bisnis dan mitra industri untuk menciptakan solusi logistik yang menguntungkan bersama." },
+      { id: 4, nomor: "04", nama: "Inovasi", icon: "ti-bulb", warna: "Green", desc: "Terus meningkatkan setiap teknologi, proses yang lebih canggih dan pengembangan SDM berkualitas." }
+    ]
+  });
+  const [layananForm, setLayananForm] = useState({
+    judulSeksi: "Layanan Unggulan",
+    subJudul: "Solusi Pengiriman Terintegrasi",
+    deskripsiSampingKanan: "Kami menyediakan berbagai jenis angkutan yang disesuaikan dengan kebutuhan volume dan jangkauan tanpa batas Anda.",
+    items: [
+      { id: 1, nama: "Angkutan Berat", icon: "ti-truck", desc: "Transportasi skala besar dengan armada heavy-duty yang dirancang untuk kinerja dan performa maksimal." },
+      { id: 2, nama: "Dalam Kota", icon: "ti-map-pin", desc: "Pengiriman cepat dari dan ke seluruh area urban dengan rute optimal guna menghemat kapasitas." },
+      { id: 3, nama: "Gudang", icon: "ti-building-warehouse", desc: "Fasilitas penyimpanan sementara yang aman dengan sistem manajemen inventory barang industri berat." },
+    ]
+  });
+  const [kendaraanForm, setKendaraanForm] = useState({
+    judulSeksi: "Kendaraan Kami",
+    deskripsiPengantar: "Kami dibekali dengan produk berkualitas, memastikan cargo Anda bergerak dalam unit transportasi standar tertinggi yang tersedia di industri.",
+    teksTombol: "Lihat Semua Armada",
+    items: [
+      { id: 1, jenis: "Pickup", kapasitas: "720 KG", tipe: "MULTI-AXLE", img: "/images/pickup-truck.jpg" },
+      { id: 2, jenis: "Truck", kapasitas: "4.000 KG", tipe: "BOX TERTUTUP", img: "/images/isuzu-truck.jpg" },
+      { id: 3, jenis: "Fuso", kapasitas: "8.000 KG", tipe: "TERMOSTAT", img: "/images/fuso-truck.jpg" },
+    ]
+  });
+
+
   useEffect(() => {
     if (contentRef.current) {
       contentRef.current.scrollTo({ top: 0, behavior: "smooth" });
@@ -121,23 +203,81 @@ export default function ProfilPerusahaan() {
     setActiveSection(id);
   };
 
-  const handlePublish = () => {
+  
+  const handlePublish = async () => {
     setIsPublishing(true);
-    setTimeout(() => {
-      setIsPublishing(false);
-      setShowSuccessModal(true);
+    try {
+      const fd = new FormData();
+      fd.append("headlineBaris1", heroForm.headline1);
+      fd.append("headlineBaris2", heroForm.headline2);
+      fd.append("headlineBaris3", heroForm.headline3);
+      fd.append("tagline", heroForm.tagline);
+      fd.append("teksTombolCTA", heroForm.ctaText);
+      fd.append("angkaStatistik1", heroForm.stat1);
+      fd.append("labelStatistik1", heroForm.statLabel1);
+      fd.append("angkaStatistik2", heroForm.stat2);
+      fd.append("labelStatistik2", heroForm.statLabel2);
+      fd.append("teksBadge", heroForm.badgeText);
+      fd.append("urlGambarManual", heroForm.imgUrl);
+      fd.append("altText", heroForm.altText);
       
-      // Auto close after 2.5 seconds
-      setTimeout(() => {
-        setShowSuccessModal(false);
-      }, 2500);
-    }, 600);
+      fd.append("judulSeksiSiapaKami", siapaKamiForm.judulSeksi);
+      fd.append("paragrafUtama", siapaKamiForm.paragrafUtama);
+      fd.append("paragrafLanjutan", siapaKamiForm.paragrafLanjutan);
+      
+      fd.append("judulVisi", visiMisiForm.visi.judul);
+      fd.append("judulMisi", visiMisiForm.misi.judul);
+      fd.append("noVisi", visiMisiForm.visi.nomor);
+      fd.append("noMisi", visiMisiForm.misi.nomor);
+      visiMisiForm.visi.poins.forEach((p, i) => {
+         fd.append("poinVisi[" + i + "]", p.text);
+      });
+      visiMisiForm.misi.poins.forEach((p, i) => {
+         fd.append("poinMisi[" + i + "]", p.text);
+      });
+      
+      fd.append("judulSeksiNilai", nilaiForm.judulSeksi);
+      nilaiForm.items.forEach((n, i) => {
+         fd.append("nilai[" + i + "].nomor", n.nomor);
+         fd.append("nilai[" + i + "].nama", n.nama);
+         fd.append("nilai[" + i + "].ikon", n.icon);
+         fd.append("nilai[" + i + "].warnaBadge", n.warna);
+         fd.append("nilai[" + i + "].deskripsi", n.desc);
+      });
+      
+      fd.append("judulSeksiLayanan", layananForm.judulSeksi);
+      fd.append("subJudulSeksiLayanan", layananForm.subJudul);
+      fd.append("deskripsiSampingKanan", layananForm.deskripsiSampingKanan);
+      layananForm.items.forEach((l, i) => {
+         fd.append("layanan[" + i + "].id", l.id || i+1);
+         fd.append("layanan[" + i + "].nama", l.nama);
+      });
+      
+      fd.append("judulSeksiKendaraan", kendaraanForm.judulSeksi);
+      fd.append("deskripsiPengantar", kendaraanForm.deskripsiPengantar);
+      fd.append("teksTombolLihatSemua", kendaraanForm.teksTombol);
+      kendaraanForm.items.forEach((k, i) => {
+         fd.append("kendaraan[" + i + "].jenis", k.jenis);
+         fd.append("kendaraan[" + i + "].kapasitas", k.kapasitas);
+         fd.append("kendaraan[" + i + "].status", k.tipe);
+      });
+
+      await api.patch('/user/admin/edit/companyprofile', fd);
+      setShowSuccessModal(true);
+      setTimeout(() => setShowSuccessModal(false), 2500);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsPublishing(false);
+    }
   };
+
 
   const activeLabel = SECTIONS.find(s => s.id === activeSection)?.label || "";
 
   return (
-    <div className="-m-8 flex flex-col h-screen overflow-hidden bg-[#FDFDF9]">
+    <CompanyFormContext.Provider value={{ heroForm, setHeroForm, siapaKamiForm, setSiapaKamiForm, visiMisiForm, setVisiMisiForm, nilaiForm, setNilaiForm, layananForm, setLayananForm, kendaraanForm, setKendaraanForm }}>
+      <div className="-m-8 flex flex-col h-screen overflow-hidden bg-[#FDFDF9]">
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-5 border-b border-gray-200/70 bg-white shrink-0 z-10">
         <div className="flex items-center gap-4">
@@ -204,27 +344,14 @@ export default function ProfilPerusahaan() {
       </div>
 
       <SuccessModal open={showSuccessModal} onClose={() => setShowSuccessModal(false)} />
-    </div>
+      </div>
+    </CompanyFormContext.Provider>
   );
 }
 
 function HeroForm() {
   const fileInputRef = useRef(null);
-
-  const [form, setForm] = useState({
-    headline1: "MANDIRI",
-    headline2: "PERKASA",
-    headline3: "LOGISTIK",
-    tagline: "Solusi logistik terpercaya untuk pengiriman dalam kota maupun luar kota. Kami memastikan armada kami selalu siap mendukung mobilitas bisnis Anda dengan proses industri.",
-    ctaText: "Hubungi Kami",
-    stat1: "2x",
-    statLabel1: "Lebih dari 2017",
-    stat2: "971+",
-    statLabel2: "Armada Aktif",
-    badgeText: "100% TEPAT WAKTU",
-    imgUrl: "",
-    altText: "Armada truck Mandiri Perkasa Logistik"
-  });
+  const { heroForm: form, setHeroForm: setForm } = useCompanyForm();
 
   const handleChange = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -408,19 +535,7 @@ function HeroForm() {
 }
 
 function SiapaKamiForm() {
-  const [form, setForm] = useState({
-    judulSeksi: "Siapa Kami?",
-    paragrafUtama: "PT Mandiri Perkasa Logistik adalah perusahaan jasa pengiriman dan distribusi barang yang berdiri sejak lebih dari satu dekade lalu. Berbasis di Sulawesi, kami melayani pengiriman dalam skala nasional dengan standar industri.",
-    paragrafLanjutan: "Dipercaya oleh ribuan industri lokal, kami mengintegrasikan teknologi LOGIS-CORE untuk memonitor transparansi data secara real-time, efisien dan akurat. Pengelolaan biaya tanpa kompleksiti.",
-    label1: "Berdiri Sejak",
-    value1: "10/10",
-    label2: "Teknologi",
-    value2: "Platform LOGIS-CORE Mandiri di 27 antaraKota",
-    label3: "Kantor Pusat",
-    value3: "Makassar",
-    label4: "Armada",
-    value4: "Makassar"
-  });
+  const { siapaKamiForm: form, setSiapaKamiForm: setForm } = useCompanyForm();
 
   const handleChange = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -559,35 +674,37 @@ function SiapaKamiForm() {
 
 function VisiMisiForm() {
   const [activeTab, setActiveTab] = useState("visi");
-  
-  const [form, setForm] = useState({
-    nomor: "01",
-    judul: "Komitmen Kami dalam Setiap Langkah",
-    poins: [
-      { id: 1, text: "Menyediakan armada kelas satu yang terukur dan berstandar keamanan tinggi" },
-      { id: 2, text: "Mendorong transparansi dan efisiensi dari seluruh nilai pemain" },
-      { id: 3, text: "Mendorong 5.000 logistik yang profesional, terlatih, dan bersertifikasi" },
-      { id: 4, text: "Memastikan biaya dasar 10am setiap hari melalui manajemen armada secara profesional" }
-    ]
-  });
+  const { visiMisiForm: form, setVisiMisiForm: setForm } = useCompanyForm();
+
+  const currentData = activeTab === "visi" ? form.visi : form.misi;
 
   const handleChange = (key, value) => {
-    setForm(prev => ({ ...prev, [key]: value }));
+    setForm(prev => ({
+      ...prev,
+      [activeTab]: { ...prev[activeTab], [key]: value }
+    }));
   };
 
   const handlePoinChange = (id, newText) => {
     setForm(prev => ({
       ...prev,
-      poins: prev.poins.map(p => p.id === id ? { ...p, text: newText } : p)
+      [activeTab]: {
+        ...prev[activeTab],
+        poins: prev[activeTab].poins.map(p => p.id === id ? { ...p, text: newText } : p)
+      }
     }));
   };
 
   const handleAddPoin = () => {
     setForm(prev => {
-      const newId = prev.poins.length > 0 ? Math.max(...prev.poins.map(p => p.id)) + 1 : 1;
+      const activePoins = prev[activeTab].poins;
+      const newId = activePoins.length > 0 ? Math.max(...activePoins.map(p => p.id)) + 1 : 1;
       return {
         ...prev,
-        poins: [...prev.poins, { id: newId, text: "" }]
+        [activeTab]: {
+          ...prev[activeTab],
+          poins: [...activePoins, { id: newId, text: "" }]
+        }
       };
     });
   };
@@ -595,7 +712,10 @@ function VisiMisiForm() {
   const handleRemovePoin = (id) => {
     setForm(prev => ({
       ...prev,
-      poins: prev.poins.filter(p => p.id !== id)
+      [activeTab]: {
+        ...prev[activeTab],
+        poins: prev[activeTab].poins.filter(p => p.id !== id)
+      }
     }));
   };
 
@@ -614,7 +734,7 @@ function VisiMisiForm() {
               : "font-medium text-gray-400 hover:text-gray-600"
           }`}
         >
-          Visi — 01
+          Visi — {form.visi.nomor}
         </button>
         <button 
           onClick={() => setActiveTab("misi")}
@@ -624,7 +744,7 @@ function VisiMisiForm() {
               : "font-medium text-gray-400 hover:text-gray-600"
           }`}
         >
-          Misi — 02
+          Misi — {form.misi.nomor}
         </button>
       </div>
 
@@ -635,7 +755,7 @@ function VisiMisiForm() {
             <input 
               type="text"
               className="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-[13px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#FFA000]"
-              value={form.nomor}
+              value={currentData.nomor}
               onChange={(e) => handleChange("nomor", e.target.value)}
             />
           </div>
@@ -644,7 +764,7 @@ function VisiMisiForm() {
             <input 
               type="text"
               className="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2 text-[13px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#FFA000]"
-              value={form.judul}
+              value={currentData.judul}
               onChange={(e) => handleChange("judul", e.target.value)}
             />
           </div>
@@ -653,7 +773,7 @@ function VisiMisiForm() {
         <div className="pt-2">
           <h3 className="text-[12px] font-medium text-gray-400 mb-4">Poin-poin {labelSufix}</h3>
           <div className="space-y-4">
-            {form.poins.map((poin, index) => (
+            {currentData.poins.map((poin, index) => (
               <div key={poin.id} className="flex items-end gap-3">
                 <div className="flex-1">
                   <label className="block text-[12px] font-medium text-gray-400 mb-1.5">
@@ -691,15 +811,7 @@ function VisiMisiForm() {
 }
 
 function NilaiForm() {
-  const [form, setForm] = useState({
-    judulSeksi: "Nilai-Nilai Perusahaan",
-    items: [
-      { id: 1, nomor: "01", nama: "Kepercayaan", icon: "ti-shield-check", warna: "Amber (default)", desc: "Membangun hubungan klien melalui komitmen transparan dan terverifikasi dalam setiap layanan pelayanan." },
-      { id: 2, nomor: "02", nama: "Presisi", icon: "ti-target", warna: "Teal", desc: "Setiap pengiriman dilakukan dengan ketepatan waktu dan akurasi data yang tak terkompromi." },
-      { id: 3, nomor: "03", nama: "Kolaborasi", icon: "ti-users", warna: "Blue", desc: "Bersama mitra bisnis dan mitra industri untuk menciptakan solusi logistik yang menguntungkan bersama." },
-      { id: 4, nomor: "04", nama: "Inovasi", icon: "ti-bulb", warna: "Green", desc: "Terus meningkatkan setiap teknologi, proses yang lebih canggih dan pengembangan SDM berkualitas." }
-    ]
-  });
+  const { nilaiForm: form, setNilaiForm: setForm } = useCompanyForm();
 
   const handleTitleChange = (val) => setForm(prev => ({ ...prev, judulSeksi: val }));
   
@@ -788,16 +900,7 @@ function NilaiForm() {
 }
 
 function KendaraanForm() {
-  const [form, setForm] = useState({
-    judulSeksi: "Kendaraan Kami",
-    deskripsiPengantar: "Kami dibekali dengan produk berkualitas, memastikan cargo Anda bergerak dalam unit transportasi standar tertinggi yang tersedia di industri.",
-    teksTombol: "Lihat Semua Armada",
-    items: [
-      { id: 1, jenis: "Pickup", kapasitas: "720 KG", tipe: "MULTI-AXLE", img: "https://..." },
-      { id: 2, jenis: "Truck", kapasitas: "4.000 KG", tipe: "BOX TERTUTUP", img: "https://..." },
-      { id: 3, jenis: "Fuso", kapasitas: "8.000 KG", tipe: "TERMOSTAT", img: "https://..." },
-    ]
-  });
+  const { kendaraanForm: form, setKendaraanForm: setForm } = useCompanyForm();
 
   const handleChange = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -934,16 +1037,7 @@ function KendaraanForm() {
 }
 
 function LayananForm() {
-  const [form, setForm] = useState({
-    judulSeksi: "Layanan Unggulan",
-    subJudul: "Solusi Pengiriman Terintegrasi",
-    deskripsiSampingKanan: "Kami menyediakan berbagai jenis angkutan yang disesuaikan dengan kebutuhan volume dan jangkauan tanpa batas Anda.",
-    items: [
-      { id: 1, nama: "Angkutan Berat", icon: "ti-truck", desc: "Transportasi skala besar dengan armada heavy-duty yang dirancang untuk kinerja dan performa maksimal." },
-      { id: 2, nama: "Dalam Kota", icon: "ti-map-pin", desc: "Pengiriman cepat dari dan ke seluruh area urban dengan rute optimal guna menghemat kapasitas." },
-      { id: 3, nama: "Gudang", icon: "ti-building-warehouse", desc: "Fasilitas penyimpanan sementara yang aman dengan sistem manajemen inventory barang industri berat." },
-    ]
-  });
+  const { layananForm: form, setLayananForm: setForm } = useCompanyForm();
 
   const handleChange = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));

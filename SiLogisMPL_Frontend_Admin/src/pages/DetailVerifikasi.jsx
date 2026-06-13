@@ -130,10 +130,10 @@ export default function DetailVerifikasi() {
     );
   }
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (!agree) return toast.error("Centang persetujuan terlebih dahulu");
     if (!driver.name || !driver.plate) return toast.error("Lengkapi info pengantar");
-    verifyOrder(order.id, driver);
+    await verifyOrder(order.id, driver);
     setShowSuccess(true);
   };
 

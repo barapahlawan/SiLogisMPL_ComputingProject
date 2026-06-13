@@ -24,6 +24,7 @@ import StatusPengiriman from "./pages/StatusPengiriman";
 import UpInvoice from "./pages/UpInvoice";
 import ProfilPerusahaan from "./pages/ProfilPerusahaan";
 import Profil from "./pages/Profil";
+import Ulasan from "./pages/Ulasan";
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
                   <Route path="/pesanan/:id/verifikasi" element={<DetailVerifikasi />} />
                   <Route path="/status-pengiriman" element={<StatusPengiriman />} />
                   <Route path="/invoice/:id" element={<UpInvoice />} />
+                  <Route path="/ulasan" element={<Ulasan />} />
                   <Route path="/profil-perusahaan" element={<ProfilPerusahaan />} />
                   <Route path="/profil" element={<Profil />} />
                 </Route>

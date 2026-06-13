@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { LayoutGrid, ListOrdered, Truck, Briefcase, User, LogOut } from "lucide-react";
+import { LayoutGrid, ListOrdered, Truck, Briefcase, User, LogOut, MessageSquare } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 
 const NAV = [
   { to: "/dashboard", icon: LayoutGrid, label: "Dashboard", testid: "nav-dashboard" },
   { to: "/pesanan", icon: ListOrdered, label: "Pesanan", testid: "nav-pesanan" },
   { to: "/status-pengiriman", icon: Truck, label: "Status Pengiriman", testid: "nav-status" },
+  { to: "/ulasan", icon: MessageSquare, label: "Ulasan", testid: "nav-ulasan" },
   { to: "/profil-perusahaan", icon: Briefcase, label: "Profil Perusahaan", testid: "nav-profil-perusahaan" },
   { to: "/profil", icon: User, label: "Profil", testid: "nav-profil" },
 ];

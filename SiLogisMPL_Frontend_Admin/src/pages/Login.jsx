@@ -5,14 +5,14 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { toast } from "sonner";
-import { Lock, User as UserIcon, Loader2 } from "lucide-react";
+import { Lock, Mail, Loader2 } from "lucide-react";
 
 export default function Login() {
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -24,12 +24,14 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const res = await login(username, password);
+    const res = await login(email, password);
     setLoading(false);
     if (res.ok) {
-      toast.success("Login berhasil");
+      toast.success("Login berhasil! Selamat datang Admin.");
       const to = location.state?.from?.pathname || "/dashboard";
-      navigate(to, { replace: true });
+      setTimeout(() => {
+        navigate(to, { replace: true });
+      }, 1000);
     } else {
       toast.error(res.message);
     }
@@ -47,16 +49,17 @@ export default function Login() {
         </div>
         <form onSubmit={handleSubmit} className="space-y-5" data-testid="login-form">
           <div className="space-y-2">
-            <Label htmlFor="username" className="text-xs uppercase tracking-wider text-gray-500">Username</Label>
+            <Label htmlFor="email" className="text-xs uppercase tracking-wider text-gray-500">Email</Label>
             <div className="relative">
-              <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                id="username"
+                id="email"
+                type="email"
                 data-testid="login-username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="pl-10 h-11"
-                placeholder="admin"
+                placeholder="admin@example.com"
                 required
               />
             </div>
@@ -86,9 +89,6 @@ export default function Login() {
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Masuk"}
           </Button>
         </form>
-        <div className="mt-6 text-center text-xs text-gray-400">
-          Demo: <span className="font-mono text-gray-600">admin / admin123</span>
-        </div>
       </div>
     </div>
   );
