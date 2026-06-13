@@ -6,25 +6,25 @@ const Layanan = () => {
   const navigate = useNavigate();
   const kendaraan = [
     {
-      badge: 'INTRA-CITY',
+      badge: '',
       badgeColor: 'bg-[#107398]',
-      image: 'https://images.unsplash.com/photo-1559297434-fae8a10f6a98?q=80&w=800&auto=format&fit=crop', 
+      image: '/images/pickup-truck.jpg', 
       title: 'Pickup',
       desc: 'Cocok untuk pengiriman barang kecil hingga sedang. Umumnya digunakan untuk pengiriman dalam kota.',
       contohMuatan: 'Paket, Ban, Oli dalam jumlah sedikit'
     },
     {
-      badge: 'MULTI-PURPOSE',
+      badge: '',
       badgeColor: 'bg-[#8B5A2B]',
-      image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=800&auto=format&fit=crop', 
+      image: '/images/isuzu-truck.jpg', 
       title: 'Truck',
       desc: 'Cocok untuk barang lebih banyak dan lebih besar. Bisa digunakan untuk pengiriman dalam kota maupun luar kota.',
       contohMuatan: 'Barang toko, Stok gudang, Barang logistik'
     },
     {
-      badge: 'HEAVY DUTY',
+      badge: '',
       badgeColor: 'bg-[#222222]',
-      image: 'https://images.unsplash.com/photo-1610491462702-42e6cef64376?q=80&w=800&auto=format&fit=crop', 
+      image: '/images/fuso-truck.jpg', 
       title: 'Fuso',
       desc: 'Cocok untuk barang sangat banyak atau berat. Biasanya digunakan untuk pengiriman jarak jauh atau antar kota.',
       contohMuatan: 'Barang dalam jumlah besar, Kebutuhan industri'
@@ -102,9 +102,11 @@ const Layanan = () => {
                     e.target.src = 'https://via.placeholder.com/800x600?text=Masukkan+Gambar+Asli+Disini'
                   }}
                 />
-                <div className={`absolute top-4 left-4 ${item.badgeColor} text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wide shadow-sm`}>
-                  {item.badge}
-                </div>
+                {item.badge && (
+                  <div className={`absolute top-4 left-4 ${item.badgeColor} text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wide shadow-sm`}>
+                    {item.badge}
+                  </div>
+                )}
               </div>
 
               <h3 className="text-[22px] font-bold mb-3">{item.title}</h3>

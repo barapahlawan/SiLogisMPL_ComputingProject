@@ -2,22 +2,23 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
-import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, Phone } from 'lucide-react'; // Tambah icon Phone jika diperlukan
 
 const Register = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false); // State pelindung double-click submit
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
     password: '',
     confirmPassword: '',
   });
 
-  const handleSubmit = (e) => {
+  // TAMBAHKAN async DI SINI
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
@@ -30,13 +31,21 @@ const Register = () => {
       return;
     }
 
-    const result = register(formData.name, formData.email, formData.password, formData.phone);
+    try {
+      setLoading(true);
+      // TAMBAHKAN await DI SINI agar menunggu respon asli dari backend Spring Boot
+      const result = await register(formData.name, formData.email, formData.password, formData.confirmPassword);
 
-    if (result.success) {
-      toast.success('Registrasi berhasil! Selamat datang.');
-      setTimeout(() => navigate('/'), 1000);
-    } else {
-      toast.error(result.message);
+      if (result && result.success) {
+        toast.success('Registrasi berhasil! Selamat datang.');
+        setTimeout(() => navigate('/'), 1000);
+      } else {
+        toast.error(result?.message || 'Registrasi gagal, silakan coba lagi.');
+      }
+    } catch (error) {
+      toast.error('Terjadi kesalahan jaringan atau server.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,7 +61,7 @@ const Register = () => {
       {/* Left: Truck Image */}
       <div className="hidden lg:flex w-[60%] relative overflow-hidden rounded-r-3xl">
         <img
-          src="/images/truck-bg.jpg"
+          src="/images/login-bg-hd.png"
           alt="Mandiri Perkasa Logistics"
           className="w-full h-full object-cover"
         />
@@ -130,10 +139,9 @@ const Register = () => {
                 />
               </div>
             </div>
-
-            {/* Kata Kunci */}
+            {/* Kata Sandi */}
             <div>
-              <label className="block text-sm font-['Inter',_sans-serif] font-medium text-gray-300 mb-2">Kata Kunci</label>
+              <label className="block text-sm font-['Inter',_sans-serif] font-medium text-gray-300 mb-2">Kata Sandi</label>
               <div className="relative flex items-center">
                 <Lock className="absolute left-0 h-5 w-5 text-[#F5BC00]" />
                 <input
@@ -188,10 +196,11 @@ const Register = () => {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full py-3 rounded-full font-['Manrope',_sans-serif] font-bold text-base text-black bg-[#F5BC00] hover:bg-[#F5BC00]/90 transition-colors duration-300"
+                disabled={loading}
+                className="w-full py-3 rounded-full font-['Manrope',_sans-serif] font-bold text-base text-black bg-[#F5BC00] hover:bg-[#F5BC00]/90 transition-colors duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed"
                 data-testid="register-submit-button"
               >
-                Daftar
+                {loading ? 'Mendaftarkan...' : 'Daftar'}
               </button>
             </div>
           </form>

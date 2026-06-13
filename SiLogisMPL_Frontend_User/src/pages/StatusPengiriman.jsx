@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 
 const DELIVERY_STATUSES = ["Diproses", "Barang Diambil", "Dalam Perjalanan", "Tiba di Tujuan"];
 const MOCK_ORDERS = [
-  { id: "LGA-29402", customer: "PT. Samudera Raya", date: "12 Okt 2023, 14:20", deliveryStatus: "Dalam Perjalanan", initials: "PT", avatarBg: "#FFA000", avatarText: "#fff" },
-  { id: "LGA-29405", customer: "Andi Maulana",       date: "12 Okt 2023, 15:45", deliveryStatus: "Dalam Perjalanan", initials: "AM", avatarBg: "#9CA3AF", avatarText: "#fff" },
-  { id: "LGA-29408", customer: "Global Food Corp",   date: "12 Okt 2023, 19:10", deliveryStatus: "Dalam Perjalanan", initials: "GF", avatarBg: "#6EE7B7", avatarText: "#065F46" },
-  { id: "LGA-29412", customer: "Eka Lestari",        date: "13 Okt 2023, 08:30", deliveryStatus: "Dalam Perjalanan", initials: "EL", avatarBg: "#FDE68A", avatarText: "#92400E" },
-  { id: "LGA-29415", customer: "Budi Santoso",       date: "13 Okt 2023, 10:00", deliveryStatus: "Diproses",         initials: "BS", avatarBg: "#BFDBFE", avatarText: "#1E40AF" },
-  { id: "LGA-29418", customer: "Sari Indah",         date: "13 Okt 2023, 11:30", deliveryStatus: "Barang Diambil",  initials: "SI", avatarBg: "#F9A8D4", avatarText: "#9D174D" },
+  { id: "LGD-29402", customer: "PT. Samudera Raya", date: "12 Okt 2023, 14:20", deliveryStatus: "Dalam Perjalanan", initials: "PT", avatarBg: "#FFA000", avatarText: "#fff" },
+  { id: "LGD-29405", customer: "Andi Maulana",       date: "12 Okt 2023, 15:45", deliveryStatus: "Dalam Perjalanan", initials: "AM", avatarBg: "#9CA3AF", avatarText: "#fff" },
+  { id: "LGD-29408", customer: "Global Food Corp",   date: "12 Okt 2023, 19:10", deliveryStatus: "Dalam Perjalanan", initials: "GF", avatarBg: "#6EE7B7", avatarText: "#065F46" },
+  { id: "LGD-29412", customer: "Eka Lestari",        date: "13 Okt 2023, 08:30", deliveryStatus: "Dalam Perjalanan", initials: "EL", avatarBg: "#FDE68A", avatarText: "#92400E" },
+  { id: "LGD-29415", customer: "Budi Santoso",       date: "13 Okt 2023, 10:00", deliveryStatus: "Diproses",         initials: "BS", avatarBg: "#BFDBFE", avatarText: "#1E40AF" },
+  { id: "LGD-29418", customer: "Sari Indah",         date: "13 Okt 2023, 11:30", deliveryStatus: "Barang Diambil",  initials: "SI", avatarBg: "#F9A8D4", avatarText: "#9D174D" },
 ];
 
 const PAGE_SIZE = 4;

@@ -69,7 +69,7 @@ const HubungiKami = () => {
             <p className="font-['Inter',_sans-serif] text-gray-500 text-sm mb-6 min-h-[40px]">
               Respon cepat untuk pertanyaan operasional dan armada.
             </p>
-            <p className="font-['Inter',_sans-serif] font-bold text-gray-900">+62 811-2233-4455</p>
+            <p className="font-['Inter',_sans-serif] font-bold text-gray-900">+62 811-4055-966</p>
           </div>
 
           {/* Card Email */}

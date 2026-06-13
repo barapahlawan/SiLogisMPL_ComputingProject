@@ -75,7 +75,7 @@ const LupaPassword = () => {
       {/* Left: Truck Image */}
       <div className="hidden lg:flex w-[60%] relative overflow-hidden rounded-r-3xl">
         <img
-          src="/images/truck-bg.jpg"
+          src="/images/login-bg-hd.png"
           alt="Mandiri Perkasa Logistics"
           className="w-full h-full object-cover"
         />

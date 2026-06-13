@@ -1,75 +1,156 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Warehouse, Truck, PackageSearch } from 'lucide-react';
+import { useData } from '../contexts/DataContext';
+
+const ICON_MAP = {
+  truck: <Truck className="w-8 h-8 text-white" strokeWidth={2} />,
+  warehouse: <Warehouse className="w-8 h-8 text-white" strokeWidth={2} />,
+  package: <PackageSearch className="w-8 h-8 text-white" strokeWidth={2} />,
+};
+
+const DEFAULT_SERVICES = [
+  {
+    icon: <PackageSearch className="w-8 h-8 text-white" strokeWidth={2} />,
+    title: 'Angkutan Berat',
+    description: 'Transportasi kargo skala besar dengan armada heavy-duty yang dirawat rutin untuk performa maksimal.',
+  },
+  {
+    icon: <Truck className="w-8 h-8 text-white" strokeWidth={2} />,
+    title: 'Dalam Kota',
+    description: 'Pengiriman cepat dan efisien untuk area urban dengan rute optimal guna menghindari kemacetan.',
+  },
+  {
+    icon: <Warehouse className="w-8 h-8 text-white" strokeWidth={2} />,
+    title: 'Gudang',
+    description: 'Fasilitas penyimpanan sementara yang aman dengan sistem manajemen inventori yang presisi.',
+  },
+];
+
+const DEFAULT_VEHICLES = [
+  {
+    label: '',
+    image: '/images/pickup-truck.jpg',
+    name: 'Pickup',
+    capacity: '720 KG',
+    type: 'MULTI-AXLE',
+  },
+  {
+    label: '',
+    image: '/images/isuzu-truck.jpg',
+    name: 'Truck',
+    capacity: '4.000 KG',
+    type: 'BOX TERTUTUP',
+  },
+  {
+    label: '',
+    image: '/images/fuso-truck.jpg',
+    name: 'Fuso',
+    capacity: '8.000 KG',
+    type: 'TERMOSTAT',
+  },
+];
+
+const testimonials = [
+  {
+    stars: 5,
+    text: '"Sistem tracking yang sangat akurat. LOGIS-CORE membantu kami menekan biaya operasional distribusi hingga 20% dalam 6 bulan pertama."',
+    name: 'Budi Santoso',
+    role: 'Manajer Logistik, PT Maju Jaya',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face',
+  },
+  {
+    stars: 5,
+    text: '"Layanan armada yang sangat terawat dan pengemudi yang profesional. Sangat merekomendasikan untuk pengiriman barang industri berat."',
+    name: 'Siti Aminah',
+    role: 'Direktur Operasional, Global Tech',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=80&h=80&fit=crop&crop=face',
+  },
+  {
+    stars: 5,
+    text: '"Integrasi API mereka sangat mulus dengan sistem inventori kami. Transparansi data yang diberikan benar-benar luar biasa."',
+    name: 'Andi Wijaya',
+    role: 'CTO, E-Logistics Indonesia',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face',
+  },
+];
 
 const Beranda = () => {
   const navigate = useNavigate();
+  const { company } = useData();
 
-  const services = [
-    {
-      icon: <PackageSearch className="w-8 h-8 text-white" strokeWidth={2} />,
-      title: 'Angkutan Berat',
-      description: 'Transportasi kargo skala besar dengan armada heavy-duty yang dirawat rutin untuk performa maksimal.',
-    },
-    {
-      icon: <Truck className="w-8 h-8 text-white" strokeWidth={2} />,
-      title: 'Dalam Kota',
-      description: 'Pengiriman cepat dan efisien untuk area urban dengan rute optimal guna menghindari kemacetan.',
-    },
-    {
-      icon: <Warehouse className="w-8 h-8 text-white" strokeWidth={2} />,
-      title: 'Gudang',
-      description: 'Fasilitas penyimpanan sementara yang aman dengan sistem manajemen inventori yang presisi.',
-    },
-  ];
+  // Hero data — pakai dari backend jika ada, fallback ke default
+  const headline1 = company.headline1 || 'MANDIRI';
+  const headline2 = company.headline2 || 'PERKASA';
+  const headline3 = company.headline3 || 'LOGISTIK';
+  const tagline = company.tagline || 'Solusi logistik terpercaya untuk pengiriman dalam kota maupun luar kota. Kami memastikan armada kami selalu siap mendukung mobilitas bisnis Anda dengan presisi industri.';
+  const stat1 = company.stat1 || '2+';
+  const statLabel1 = company.statLabel1 || 'Tahun Berdiri';
+  const stat2 = company.stat2 || '20+';
+  const statLabel2 = company.statLabel2 || 'Unit Armada';
+  const badgeText = company.badgeText || '100% Aman & Terjamin';
+  const heroImg = company.imgUrl || 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=900';
+  const heroAlt = company.altText || 'Truck Pengiriman';
 
-  const vehicles = [
-    {
-      label: 'KELAS BERAT',
-      image: 'https://images.unsplash.com/photo-1559297434-fae8a10f6a98?q=80&w=800&auto=format&fit=crop',
-      name: 'Pickup',
-      capacity: '720 KG',
-      type: 'MULTI-AXLE',
-    },
-    {
-      label: 'AGILE PERKOTAAN',
-      image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=800&auto=format&fit=crop',
-      name: 'Truck',
-      capacity: '4.000 KG',
-      type: 'BOX TERTUTUP',
-    },
-    {
-      label: 'RANTAI DINGIN',
-      image: 'https://images.unsplash.com/photo-1610491462702-42e6cef64376?q=80&w=800&auto=format&fit=crop',
-      name: 'Fuso',
-      capacity: '8.000 KG',
-      type: 'TERMOSTAT',
-    },
-  ];
+  // Siapa Kami
+  const paragrafUtama = company.paragrafUtama || 'PT Mandiri Perkasa Logistik adalah perusahaan jasa pengiriman dan distribusi barang yang berdiri sejak lebih dari satu dekade lalu. Berbasis di Sulawesi, kami melayani jaringan distribusi skala nasional dengan standar industri tertinggi.';
+  const paragrafLanjutan = company.paragrafLanjutan || 'Dipercaya oleh ribuan mitra industri, kami mengintegrasikan teknologi LOGIS-CORE untuk memberikan transparansi data secara real-time, efisiensi rantai pasok, dan keamanan kargo tanpa kompromi.';
 
-  const testimonials = [
-    {
-      stars: 5,
-      text: '"Sistem tracking yang sangat akurat. LOGIS-CORE membantu kami menekan biaya operasional distribusi hingga 20% dalam 6 bulan pertama."',
-      name: 'Budi Santoso',
-      role: 'Manajer Logistik, PT Maju Jaya',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face',
-    },
-    {
-      stars: 5,
-      text: '"Layanan armada yang sangat terawat dan pengemudi yang profesional. Sangat merekomendasikan untuk pengiriman barang industri berat."',
-      name: 'Siti Aminah',
-      role: 'Direktur Operasional, Global Tech',
-      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=80&h=80&fit=crop&crop=face',
-    },
-    {
-      stars: 5,
-      text: '"Integrasi API mereka sangat mulus dengan sistem inventori kami. Transparansi data yang diberikan benar-benar luar biasa."',
-      name: 'Andi Wijaya',
-      role: 'CTO, E-Logistics Indonesia',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face',
-    },
-  ];
+  // Visi Misi
+  const judulVisi = company.judulVisi || 'Visi Kami';
+  const judulMisi = company.judulMisi || 'Misi Kami';
+  const poinVisi = Array.isArray(company.poinVisi) && company.poinVisi.length > 0
+    ? company.poinVisi
+    : [
+        "Menjadi perusahaan jasa pengantaran barang yang terpercaya dan profesional dalam mendukung kebutuhan pengiriman barang bagi individu maupun perusahaan."
+      ];
+  const poinMisi = Array.isArray(company.poinMisi) && company.poinMisi.length > 0
+    ? company.poinMisi
+    : [
+        "Memberikan layanan pengantaran barang yang aman, tepat waktu, dan terpercaya.",
+        "Menjalin kerja sama yang baik dengan berbagai perusahaan dan mitra bisnis dalam proses pengiriman barang.",
+        "Menyediakan pilihan kendaraan yang sesuai dengan kebutuhan pengiriman anda.",
+        "Memberikan pelayanan yang profesional dan responsif kepada customer",
+        "Mempermudah proses pemesanan dan informasi pengiriman melalui platform digital"
+      ];
+
+  // Nilai
+  const nilaiItems = Array.isArray(company.nilai) && company.nilai.length > 0
+    ? company.nilai
+    : [
+        { nomor: '01', nama: 'Kepercayaan', ikon: '🛡️', deskripsi: 'Membangun hubungan jangka panjang atas dasar kejujuran, transparansi, dan konsistensi dalam setiap janji layanan.' },
+        { nomor: '02', nama: 'Presisi', ikon: '⚡', deskripsi: 'Setiap pengiriman dieksekusi dengan ketepatan waktu dan akurasi data yang tak kompromi – presisi adalah standar kami.' },
+        { nomor: '03', nama: 'Kolaborasi', ikon: '🤝', deskripsi: 'Bermitra erat dengan klien, pengemudi, dan mitra industri untuk menciptakan solusi logistik yang saling menguntungkan.' },
+        { nomor: '04', nama: 'Inovasi', ikon: '🌱', deskripsi: 'Terus berinovasi melalui adopsi teknologi terkini, proses yang lebih cerdas, dan pengembangan SDM berkelanjutan.' },
+      ];
+
+  // Layanan
+  const services = Array.isArray(company.layanan) && company.layanan.length > 0
+    ? company.layanan.map(l => ({
+        icon: ICON_MAP[l.ikon] || DEFAULT_SERVICES[0].icon,
+        title: l.nama,
+        description: l.deskripsi || l.tarifEst || '',
+      }))
+    : DEFAULT_SERVICES;
+
+  const judulSeksiLayanan = company.judulSeksiLayanan || 'Layanan Unggulan';
+  const subJudulSeksiLayanan = company.subJudulSeksiLayanan || 'Solusi Pengiriman Terintegrasi';
+  const deskripsiSampingKanan = company.deskripsiSampingKanan || 'Kami menyediakan berbagai jenis angkutan yang disesuaikan dengan kebutuhan volume dan jarak tempuh Anda.';
+
+  // Kendaraan
+  const vehicles = Array.isArray(company.kendaraan) && company.kendaraan.length > 0
+    ? company.kendaraan.map((k, i) => ({
+        label: k.status || DEFAULT_VEHICLES[i % DEFAULT_VEHICLES.length]?.label || '',
+        image: DEFAULT_VEHICLES[i % DEFAULT_VEHICLES.length]?.image || '',
+        name: k.jenis,
+        capacity: k.kapasitas,
+        type: k.tipe || k.status || '',
+      }))
+    : DEFAULT_VEHICLES;
+
+  const judulSeksiKendaraan = company.judulSeksiKendaraan || 'Kendaraan Kami';
+  const deskripsiPengantar = company.deskripsiPengantar || 'Aset kami dipelihara dengan presisi bedah, memastikan kargo Anda bergerak dalam unit transportasi standar tertinggi yang tersedia di industri.';
+  const teksTombolLihatSemua = company.teksTombolLihatSemua || 'LIHAT SEMUA';
 
   return (
     <div className="bg-white text-black font-['Manrope',_sans-serif] overflow-x-hidden">
@@ -80,24 +161,23 @@ const Beranda = () => {
         {/* BAGIAN KIRI: TEKS HERO */}
         <div className="space-y-8 z-10">
           <h1 className="text-6xl md:text-7xl lg:text-[80px] font-black tracking-tight leading-[1.05]">
-            <span className="text-[#F5BC00]">MANDIRI</span><br />
-            <span className="text-black">PERKASA</span><br />
-            <span className="text-[#F5BC00]">LOGISTIK</span>
+            <span className="text-[#F5BC00]">{headline1}</span><br />
+            <span className="text-black">{headline2}</span><br />
+            <span className="text-[#F5BC00]">{headline3}</span>
           </h1>
           
           <p className="font-['Inter',_sans-serif] text-neutral-600 text-lg md:text-xl leading-relaxed max-w-xl">
-            Solusi logistik terpercaya untuk pengiriman dalam kota maupun luar kota. 
-            Kami memastikan armada kami selalu siap mendukung mobilitas bisnis Anda dengan presisi industri.
+            {tagline}
           </p>
           
           <div className="flex gap-12 pt-4">
             <div>
-              <h3 className="text-[#F5BC00] text-4xl font-black mb-1">2+</h3>
-              <p className="text-xs font-bold tracking-widest text-black uppercase">Tahun Berdiri</p>
+              <h3 className="text-[#F5BC00] text-4xl font-black mb-1">{stat1}</h3>
+              <p className="text-xs font-bold tracking-widest text-black uppercase">{statLabel1}</p>
             </div>
             <div>
-              <h3 className="text-[#F5BC00] text-4xl font-black mb-1">????+</h3>
-              <p className="text-xs font-bold tracking-widest text-black uppercase">Unit Armada</p>
+              <h3 className="text-[#F5BC00] text-4xl font-black mb-1">{stat2}</h3>
+              <p className="text-xs font-bold tracking-widest text-black uppercase">{statLabel2}</p>
             </div>
           </div>
         </div>
@@ -106,22 +186,22 @@ const Beranda = () => {
         <div className="relative w-full flex justify-end">
           <div className="w-full max-w-[500px] h-[550px] rounded-[3rem] overflow-hidden shadow-xl bg-neutral-100">
             <img
-              src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=900"
-              alt="Truck Pengiriman"
-              className="w-full h-full object-cover"
+              src={heroImg}
+              alt={heroAlt}
+              className="w-full h-full object-cover object-[25%_center]"
             />
           </div>
           
           {/* Overlapping Yellow Box */}
           <div className="absolute bottom-16 -left-8 md:-left-16 bg-[#F5BC00] text-white p-8 rounded-3xl shadow-lg w-[260px]">
-            <div className="text-5xl font-black tracking-tight leading-none mb-2">100%</div>
+            <div className="text-5xl font-black tracking-tight leading-none mb-2">{badgeText.split(' ')[0]}</div>
             <div className="font-['Inter',_sans-serif] text-[13px] font-bold tracking-widest uppercase opacity-95">
-              Aman & Terjamin
+              {badgeText.split(' ').slice(1).join(' ') || 'Aman & Terjamin'}
             </div>
           </div>
 
           <a
-             href="https://wa.me/628123456789"
+             href="https://wa.me/628114055966"
              target="_blank"
              rel="noreferrer"
              className="absolute -bottom-6 right-8 flex items-center group cursor-pointer z-50"
@@ -142,34 +222,45 @@ const Beranda = () => {
       <section className="relative max-w-7xl mx-auto px-6 md:px-12 lg:px-16 pb-24">
         
         <h2 className="text-5xl md:text-6xl font-bold tracking-tight mb-8">
-          Siapa <span className="text-[#F5BC00]">Kami?</span>
+          Siapa <span className="text-[#F5BC00]">{company.judulSeksiSiapaKami ? company.judulSeksiSiapaKami.replace('Siapa', '').trim() : 'Kami?'}</span>
         </h2>
         
         <p className="font-['Inter',_sans-serif] text-neutral-800 text-[15px] leading-relaxed max-w-5xl mb-6">
-          PT Mandiri Perkasa Logistik adalah perusahaan jasa pengiriman dan distribusi barang yang berdiri sejak lebih dari satu dekade lalu. Berbasis di Sulawesi, kami melayani jaringan distribusi skala nasional dengan standar industri tertinggi.
+          {paragrafUtama}
         </p>
         <p className="font-['Inter',_sans-serif] text-neutral-800 text-[15px] leading-relaxed max-w-5xl mb-12">
-          Dipercaya oleh ribuan mitra industri, kami mengintegrasikan teknologi LOGIS-CORE untuk memberikan transparansi data secara real-time, efisiensi rantai pasok, dan keamanan kargo tanpa kompromi.
+          {paragrafLanjutan}
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-          <div className="bg-[#FFFAEE] p-6 border-l-4 border-[#F5BC00]">
-             <h4 className="font-bold text-black text-lg mb-1">Berdiri Sejak</h4>
-             <p className="font-['Inter',_sans-serif] text-sm text-neutral-600">??????</p>
+        {Array.isArray(company.infoKilat) && company.infoKilat.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+            {company.infoKilat.map((info, i) => (
+              <div key={i} className="bg-[#FFFAEE] p-6 border-l-4 border-[#F5BC00]">
+                <h4 className="font-bold text-black text-lg mb-1">{info.judul}</h4>
+                <p className="font-['Inter',_sans-serif] text-sm text-neutral-600">{info.deskripsi}</p>
+              </div>
+            ))}
           </div>
-          <div className="bg-[#FFFAEE] p-6 border-l-4 border-[#F5BC00]">
-             <h4 className="font-bold text-black text-lg mb-1">Kantor Pusat</h4>
-             <p className="font-['Inter',_sans-serif] text-sm text-neutral-600">??????</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+            <div className="bg-[#FFFAEE] p-6 border-l-4 border-[#F5BC00]">
+               <h4 className="font-bold text-black text-lg mb-1">Berdiri Sejak</h4>
+               <p className="font-['Inter',_sans-serif] text-sm text-neutral-600">2024</p>
+            </div>
+            <div className="bg-[#FFFAEE] p-6 border-l-4 border-[#F5BC00]">
+               <h4 className="font-bold text-black text-lg mb-1">Kantor Pusat</h4>
+               <p className="font-['Inter',_sans-serif] text-sm text-neutral-600">Kota Kendari, Sulawesi</p>
+            </div>
+            <div className="bg-[#FFFAEE] p-6 border-l-4 border-[#F5BC00]">
+               <h4 className="font-bold text-black text-lg mb-1">Teknologi</h4>
+               <p className="font-['Inter',_sans-serif] text-sm text-neutral-600">Platform LOGIS-CORE dengan telemetri dan IoT terintegrasi</p>
+            </div>
+            <div className="bg-[#FFFAEE] p-6 border-l-4 border-[#F5BC00]">
+               <h4 className="font-bold text-black text-lg mb-1">Armada</h4>
+               <p className="font-['Inter',_sans-serif] text-sm text-neutral-600">20++</p>
+            </div>
           </div>
-          <div className="bg-[#FFFAEE] p-6 border-l-4 border-[#F5BC00]">
-             <h4 className="font-bold text-black text-lg mb-1">Teknologi</h4>
-             <p className="font-['Inter',_sans-serif] text-sm text-neutral-600">Platform LOGIS-CORE dengan telemetri dan IoT terintegrasi</p>
-          </div>
-          <div className="bg-[#FFFAEE] p-6 border-l-4 border-[#F5BC00]">
-             <h4 className="font-bold text-black text-lg mb-1">Armada</h4>
-             <p className="font-['Inter',_sans-serif] text-sm text-neutral-600">??????</p>
-          </div>
-        </div>
+        )}
       </section>
 
       {/* 3. VISI MISI & NILAI */}
@@ -184,23 +275,13 @@ const Beranda = () => {
                {/* Visi */}
                <div>
                   <div className="flex justify-between items-start mb-6">
-                     <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center text-xl">
-                        🎯
-                     </div>
-                     <span className="text-6xl font-black text-[#F5BC00]/40">01</span>
+                     <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center text-xl">🎯</div>
+                     <span className="text-6xl font-black text-[#F5BC00]/40">{String(company.noVisi || '01').padStart(2, '0')}</span>
                   </div>
                   <h4 className="text-[#F5BC00] text-sm font-bold tracking-wider uppercase mb-2">Visi</h4>
-                  <h3 className="text-3xl font-bold text-black mb-8 leading-tight">
-                     Komitmen Kami dalam <br className="hidden md:block" /> Setiap Langkah
-                  </h3>
+                  <h3 className="text-3xl font-bold text-black mb-8 leading-tight">{judulVisi}</h3>
                   <ul className="space-y-5">
-                     {[
-                        "Menyediakan armada kelas industri yang terawat dan berstandar keamanan tinggi",
-                        "Menghadirkan teknologi LOGIS-CORE untuk transparansi dan efisiensi rantai pasok",
-                        "Membangun SDM logistik yang profesional, terlatih, dan berorientasi layanan",
-                        "Menekan biaya distribusi klien melalui optimasi rute dan manajemen armada cerdas",
-                        "Memperluas jangkauan layanan ke seluruh wilayah strategis Indonesia"
-                     ].map((item, i) => (
+                     {poinVisi.map((item, i) => (
                         <li key={i} className="flex items-start gap-4 border-b border-neutral-100 pb-5">
                            <span className="text-black mt-1">→</span>
                            <span className="font-['Inter',_sans-serif] text-[14px] text-neutral-800">{item}</span>
@@ -212,70 +293,37 @@ const Beranda = () => {
                {/* Misi */}
                <div>
                   <div className="flex justify-between items-start mb-6">
-                     <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-xl">
-                        🚀
-                     </div>
-                     <span className="text-6xl font-black text-[#F5BC00]/40">02</span>
+                     <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-xl">🚀</div>
+                     <span className="text-6xl font-black text-[#F5BC00]/40">{String(company.noMisi || '02').padStart(2, '0')}</span>
                   </div>
                   <h4 className="text-[#F5BC00] text-sm font-bold tracking-wider uppercase mb-2">Misi</h4>
-                  <h3 className="text-3xl font-bold text-black mb-6 leading-tight">
-                     Menjadi Tulang Punggung <br className="hidden md:block" /> Logistik Industri Indonesia
-                  </h3>
-                  <p className="font-['Inter',_sans-serif] text-neutral-800 text-[15px] leading-loose max-w-sm">
-                     Menjadi perusahaan logistik paling dipercaya di Indonesia dengan membangun ekosistem distribusi yang efisien, terintegrasi, dan berkelanjutan — mendukung setiap mata rantai industri nasional dari Sabang sampai Merauke.
-                  </p>
+                  <h3 className="text-3xl font-bold text-black mb-6 leading-tight">{judulMisi}</h3>
+                  <ul className="space-y-5">
+                     {poinMisi.map((item, i) => (
+                        <li key={i} className="flex items-start gap-4 border-b border-neutral-100 pb-5">
+                           <span className="text-black mt-1">→</span>
+                           <span className="font-['Inter',_sans-serif] text-[14px] text-neutral-800">{item}</span>
+                        </li>
+                     ))}
+                  </ul>
                </div>
             </div>
 
             {/* Nilai-Nilai Perusahaan */}
             <h2 className="text-5xl md:text-6xl font-bold tracking-tight mb-12">
-               Nilai-Nilai <span className="text-[#F5BC00]">Perusahaan</span>
+               {company.judulSeksiNilai || 'Nilai-Nilai'} <span className="text-[#F5BC00]">Perusahaan</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-               {/* 01 */}
-               <div className="bg-[#F8F9FA] p-12 border-b-4 border-[#F5BC00]">
-                  <div className="flex items-center gap-4 mb-6">
-                     <span className="text-5xl font-black text-[#F5BC00]">01</span>
-                     <span className="text-2xl">🛡️</span>
+               {nilaiItems.map((n, i) => (
+                  <div key={i} className="bg-[#F8F9FA] p-12 border-b-4 border-[#F5BC00]">
+                     <div className="flex items-center gap-4 mb-6">
+                        <span className="text-5xl font-black text-[#F5BC00]">{n.nomor || String(i + 1).padStart(2, '0')}</span>
+                        <span className="text-2xl">{n.ikon || '⭐'}</span>
+                     </div>
+                     <h3 className="text-3xl font-bold text-black mb-4">{n.nama}</h3>
+                     <p className="font-['Inter',_sans-serif] text-sm text-neutral-600 leading-relaxed">{n.deskripsi}</p>
                   </div>
-                  <h3 className="text-3xl font-bold text-black mb-4">Kepercayaan</h3>
-                  <p className="font-['Inter',_sans-serif] text-sm text-neutral-600 leading-relaxed">
-                     Membangun hubungan jangka panjang atas dasar kejujuran, transparansi, dan konsistensi dalam setiap janji layanan.
-                  </p>
-               </div>
-               {/* 02 */}
-               <div className="bg-[#F8F9FA] p-12 border-b-4 border-[#F5BC00]">
-                  <div className="flex items-center gap-4 mb-6">
-                     <span className="text-5xl font-black text-[#F5BC00]">02</span>
-                     <span className="text-2xl">⚡</span>
-                  </div>
-                  <h3 className="text-3xl font-bold text-black mb-4">Presisi</h3>
-                  <p className="font-['Inter',_sans-serif] text-sm text-neutral-600 leading-relaxed">
-                     Setiap pengiriman dieksekusi dengan ketepatan waktu dan akurasi data yang tak kompromi – presisi adalah standar kami.
-                  </p>
-               </div>
-               {/* 03 */}
-               <div className="bg-[#F8F9FA] p-12 border-b-4 border-[#F5BC00]">
-                  <div className="flex items-center gap-4 mb-6">
-                     <span className="text-5xl font-black text-[#F5BC00]">03</span>
-                     <span className="text-2xl">🤝</span>
-                  </div>
-                  <h3 className="text-3xl font-bold text-black mb-4">Kolaborasi</h3>
-                  <p className="font-['Inter',_sans-serif] text-sm text-neutral-600 leading-relaxed">
-                     Bermitra erat dengan klien, pengemudi, dan mitra industri untuk menciptakan solusi logistik yang saling menguntungkan.
-                  </p>
-               </div>
-               {/* 04 */}
-               <div className="bg-[#F8F9FA] p-12 border-b-4 border-[#F5BC00]">
-                  <div className="flex items-center gap-4 mb-6">
-                     <span className="text-5xl font-black text-[#F5BC00]">04</span>
-                     <span className="text-2xl">🌱</span>
-                  </div>
-                  <h3 className="text-3xl font-bold text-black mb-4">Inovasi</h3>
-                  <p className="font-['Inter',_sans-serif] text-sm text-neutral-600 leading-relaxed">
-                     Terus berinovasi melalui adopsi teknologi terkini, proses yang lebih cerdas, dan pengembangan SDM berkelanjutan.
-                  </p>
-               </div>
+               ))}
             </div>
          </div>
       </section>
@@ -286,23 +334,18 @@ const Beranda = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16">
             <div>
               <h2 className="text-4xl md:text-5xl font-bold text-[#111111] tracking-tight mb-2">
-                Layanan <span className="text-[#F5BC00]">Unggulan</span>
+                {judulSeksiLayanan} <span className="text-[#F5BC00]"></span>
               </h2>
-              <h3 className="text-3xl font-bold text-[#111111]">
-                 Solusi Pengiriman Terintegrasi
-              </h3>
+              <h3 className="text-3xl font-bold text-[#111111]">{subJudulSeksiLayanan}</h3>
             </div>
             <p className="font-['Inter',_sans-serif] text-neutral-700 max-w-sm text-[14px] leading-relaxed md:text-right pb-1">
-              Kami menyediakan berbagai jenis angkutan yang disesuaikan dengan kebutuhan volume dan jarak tempuh Anda.
+              {deskripsiSampingKanan}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {services.map((service, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-3xl p-10 shadow-sm"
-              >
+              <div key={index} className="bg-white rounded-3xl p-10 shadow-sm">
                 <div className="w-16 h-16 rounded-xl bg-[#F5BC00] flex items-center justify-center mb-8">
                   {service.icon}
                 </div>
@@ -322,10 +365,10 @@ const Beranda = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
             <div className="max-w-2xl">
               <h2 className="text-3xl md:text-4xl font-bold text-[#0B1727] tracking-tight mb-4">
-                Kendaraan Kami
+                {judulSeksiKendaraan}
               </h2>
               <p className="font-['Inter',_sans-serif] text-neutral-600 text-[15px] leading-relaxed">
-                Aset kami dipelihara dengan presisi bedah, memastikan kargo Anda bergerak<br className="hidden md:block" /> dalam unit transportasi standar tertinggi yang tersedia di industri.
+                {deskripsiPengantar}
               </p>
             </div>
             <button
@@ -333,7 +376,7 @@ const Beranda = () => {
               className="flex items-center gap-4 bg-transparent border-none cursor-pointer group"
             >
               <span className="font-['Inter',_sans-serif] font-bold text-[13px] text-[#F5BC00] underline underline-offset-4 decoration-2 tracking-wider uppercase transition-colors">
-                LIHAT SEMUA
+                {teksTombolLihatSemua}
               </span>
               <div className="w-10 h-10 rounded bg-[#F5BC00] flex items-center justify-center shadow-sm">
                 <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" className="w-5 h-5">
@@ -345,19 +388,14 @@ const Beranda = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {vehicles.map((vehicle, index) => (
-              <div 
-                key={index} 
-                className="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden"
-              >
+              <div key={index} className="bg-white rounded-xl shadow-sm border border-neutral-100 overflow-hidden">
                 <div className="relative h-56 overflow-hidden">
-                  <img
-                    src={vehicle.image}
-                    alt={vehicle.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <span className="absolute top-4 right-4 bg-[#7A5B15] text-[#F5BC00] px-3 py-1 font-['Inter',_sans-serif] text-[9px] font-bold tracking-widest rounded-sm uppercase">
-                    {vehicle.label}
-                  </span>
+                  <img src={vehicle.image} alt={vehicle.name} className="w-full h-full object-cover" />
+                  {vehicle.label && (
+                    <span className="absolute top-4 right-4 bg-[#7A5B15] text-[#F5BC00] px-3 py-1 font-['Inter',_sans-serif] text-[9px] font-bold tracking-widest rounded-sm uppercase">
+                      {vehicle.label}
+                    </span>
+                  )}
                 </div>
                 <div className="p-8">
                   <h3 className="text-2xl font-bold text-[#0B1727] mb-6">{vehicle.name}</h3>
@@ -397,29 +435,19 @@ const Beranda = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16 text-left">
             {testimonials.map((t, index) => (
               <div key={index} className="flex flex-col">
-                
                 <div className="flex gap-1.5 mb-6">
                   {[...Array(t.stars)].map((_, i) => (
                     <Star key={i} size={24} className="text-[#F5BC00] fill-[#F5BC00]" />
                   ))}
                 </div>
-                
-                <p className="font-['Inter',_sans-serif] text-[#111111] text-[16px] leading-relaxed mb-8 flex-grow">
-                  {t.text}
-                </p>
-                
+                <p className="font-['Inter',_sans-serif] text-[#111111] text-[16px] leading-relaxed mb-8 flex-grow">{t.text}</p>
                 <div className="flex items-center gap-4">
-                  <img 
-                    src={t.avatar} 
-                    alt={t.name} 
-                    className="w-14 h-14 rounded-full object-cover" 
-                  />
+                  <img src={t.avatar} alt={t.name} className="w-14 h-14 rounded-full object-cover" />
                   <div>
                     <div className="font-bold text-[15px] text-[#111111]">{t.name}</div>
                     <div className="font-['Inter',_sans-serif] text-[13px] text-neutral-500 mt-0.5">{t.role}</div>
                   </div>
                 </div>
-                
               </div>
             ))}
           </div>

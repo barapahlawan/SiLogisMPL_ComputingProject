@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  Check, X, ArrowRight, Lightbulb, MapPin, 
-  Package, ClipboardList, Bell, User as UserIcon, 
+import {
+  Check, X, ArrowRight, Lightbulb, MapPin,
+  Package, ClipboardList, Bell, User as UserIcon,
   Star, MessageSquare, Phone, Info, FileText,
-  Truck, Archive, Clock
+  Truck, Archive, Clock, Download
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -60,27 +60,40 @@ const Pesanan = ({ onComplete }) => {
           />
         </div>
 
-        <div className="bg-[#f8f9fa] p-6 rounded-2xl border border-gray-100 flex flex-col justify-center">
+        <div className="bg-[#f8f9fa] p-6 rounded-2xl border border-gray-100 flex flex-col justify-center focus-within:border-[#F5BC00] transition-colors duration-200">
           <label className="block text-xs font-bold text-gray-500 mb-2 tracking-wider">
             TOTAL BERAT ESTIMASI
           </label>
           <div className="flex items-end gap-2 mb-2">
-            <span className="text-5xl font-bold text-gray-900">
-              {formData.beratEstimasi || '0.00'}
-            </span>
-            <span className="text-xl font-bold text-gray-900 mb-1">KG</span>
+            <input
+              name="beratEstimasi"
+              type="number"
+              step="0.1" // Supaya bisa desimal (misal 12.5)
+              min="0"
+              placeholder="0.00"
+              value={formData.beratEstimasi}
+              onChange={handleInputChange} // Menggunakan fungsi handleInputChange bawaanmu
+              className="text-5xl font-bold text-gray-900 bg-transparent border-b-2 border-transparent focus:border-b-gray-400 w-44 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <span className="text-xl font-bold text-gray-400 mb-1">KG</span>
           </div>
           <div className="w-12 h-1 bg-[#F5BC00] mt-2"></div>
         </div>
 
-        <div className="bg-[#f8f9fa] p-6 rounded-2xl border border-gray-100 flex flex-col justify-center">
+        <div className="bg-[#f8f9fa] p-6 rounded-2xl border border-gray-100 flex flex-col justify-center focus-within:border-[#F5BC00] transition-colors duration-200">
           <label className="block text-xs font-bold text-gray-500 mb-2 tracking-wider">
             TOTAL PAKET
           </label>
           <div className="flex items-end gap-2 mb-2">
-            <span className="text-5xl font-bold text-gray-900">
-              {formData.totalPaket || '0.00'}
-            </span>
+            <input
+              name="totalPaket"
+              type="number"
+              min="0"
+              placeholder="0"
+              value={formData.totalPaket}
+              onChange={handleInputChange}
+              className="text-5xl font-bold text-gray-900 bg-transparent border-b-2 border-transparent focus:border-b-gray-400 w-44 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
           </div>
           <div className="w-12 h-1 bg-[#F5BC00] mt-2"></div>
         </div>
@@ -88,9 +101,9 @@ const Pesanan = ({ onComplete }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
         <div className="relative h-64 rounded-2xl overflow-hidden bg-gray-800">
-          <img 
-            src="https://images.unsplash.com/photo-1586528116311-ad8c73875052?q=80&w=2070&auto=format&fit=crop" 
-            alt="Warehouse" 
+          <img
+            src="/images/hd_warehouse_bg_v2.png"
+            alt="Warehouse"
             className="absolute inset-0 w-full h-full object-cover opacity-40 grayscale"
           />
           <div className="absolute bottom-0 left-0 p-8">
@@ -115,7 +128,7 @@ const Pesanan = ({ onComplete }) => {
       </div>
 
       <div className="flex items-center justify-between border-t border-gray-200 pt-8">
-        <button 
+        <button
           onClick={() => navigate('/layanan')}
           className="flex items-center gap-2 text-sm font-bold text-gray-700 hover:text-gray-900"
         >
@@ -150,7 +163,7 @@ const Pesanan = ({ onComplete }) => {
                 ALAMAT ASAL (TITIK JEMPUT)
               </h2>
             </div>
-            
+
             <div className="space-y-5">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-2 tracking-wider">
@@ -165,7 +178,7 @@ const Pesanan = ({ onComplete }) => {
                   className="w-full bg-[#E5E7EB] text-gray-800 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-[#F5BC00]"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-2 tracking-wider">
                   ALAMAT LENGKAP
@@ -218,7 +231,7 @@ const Pesanan = ({ onComplete }) => {
                 ALAMAT TUJUAN (DESTINASI)
               </h2>
             </div>
-            
+
             <div className="space-y-5">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-2 tracking-wider">
@@ -233,7 +246,7 @@ const Pesanan = ({ onComplete }) => {
                   className="w-full bg-[#E5E7EB] text-gray-800 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-[#F5BC00]"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-2 tracking-wider">
                   ALAMAT LENGKAP
@@ -319,7 +332,7 @@ const Pesanan = ({ onComplete }) => {
         badge: 'PERKOTAAN',
         badgeColor: 'bg-blue-100 text-blue-600',
         capacity: '720 Kg',
-        img: 'https://images.unsplash.com/photo-1559297434-fae8a10f6a98?q=80&w=800&auto=format&fit=crop',
+        img: '/images/pickup-truck.jpg',
       },
       {
         id: 'Truck',
@@ -327,7 +340,7 @@ const Pesanan = ({ onComplete }) => {
         badge: 'MENENGAH',
         badgeColor: 'bg-yellow-100 text-yellow-700',
         capacity: '4.000 Kg',
-        img: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=800&auto=format&fit=crop',
+        img: '/images/isuzu-truck.jpg',
       },
       {
         id: 'Fuso',
@@ -335,7 +348,7 @@ const Pesanan = ({ onComplete }) => {
         badge: 'BERAT',
         badgeColor: 'bg-red-100 text-red-600',
         capacity: '8.000 Kg',
-        img: 'https://images.unsplash.com/photo-1610491462702-42e6cef64376?q=80&w=800&auto=format&fit=crop',
+        img: '/images/fuso-truck.jpg',
       },
     ];
 
@@ -359,15 +372,14 @@ const Pesanan = ({ onComplete }) => {
             return (
               <div
                 key={armada.id}
-                className={`bg-white rounded-3xl p-6 shadow-sm border transition-all cursor-pointer ${
-                  isSelected ? 'border-l-4 border-[#F5BC00]' : 'border-gray-100 hover:border-gray-200'
-                }`}
+                className={`bg-white rounded-3xl p-6 shadow-sm border transition-all cursor-pointer ${isSelected ? 'border-l-4 border-[#F5BC00]' : 'border-gray-100 hover:border-gray-200'
+                  }`}
                 onClick={() => handleSelectArmada(armada.id)}
               >
                 <div className="h-40 bg-gray-100 rounded-2xl mb-6 overflow-hidden">
                   <img src={armada.img} alt={armada.name} className="w-full h-full object-cover" />
                 </div>
-                
+
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">{armada.name}</h3>
                 <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold tracking-wider mb-6 ${armada.badgeColor}`}>
                   {armada.badge}
@@ -383,11 +395,10 @@ const Pesanan = ({ onComplete }) => {
                 </div>
 
                 <button
-                  className={`w-full py-3 px-4 rounded-xl font-bold transition-all ${
-                    isSelected
-                      ? 'bg-[#F5BC00] hover:bg-[#F5BC00]/90 text-white shadow-md'
-                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`w-full py-3 px-4 rounded-xl font-bold transition-all ${isSelected
+                    ? 'bg-[#F5BC00] hover:bg-[#F5BC00]/90 text-white shadow-md'
+                    : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                    }`}
                 >
                   {isSelected ? 'TERPILIH' : 'Pilih Kendaraan'}
                 </button>
@@ -478,12 +489,12 @@ const Pesanan = ({ onComplete }) => {
         </div>
 
         <h3 className="text-xs font-bold text-gray-400 tracking-widest mb-6">INFORMASI PELANGGAN</h3>
-        
+
         <div className="grid grid-cols-2 gap-8 mb-10 border-b border-gray-100 pb-10">
           <div>
             <p className="text-xs font-bold text-gray-500 mb-1 tracking-wider uppercase">Nama Pengirim / Gudang</p>
             <p className="text-lg font-bold text-gray-900 mb-4">{formData.pengirimNama || '-'}</p>
-            
+
             <p className="text-xs font-bold text-gray-500 mb-1 tracking-wider uppercase">PIC Pengirim</p>
             <p className="font-bold text-gray-900 mb-4">{formData.pengirimPIC || '-'}</p>
 
@@ -493,7 +504,7 @@ const Pesanan = ({ onComplete }) => {
           <div>
             <p className="text-xs font-bold text-gray-500 mb-1 tracking-wider uppercase">Nama Penerima / Gudang</p>
             <p className="text-lg font-bold text-gray-900 mb-4">{formData.penerimaNama || '-'}</p>
-            
+
             <p className="text-xs font-bold text-gray-500 mb-1 tracking-wider uppercase">PIC Penerima</p>
             <p className="font-bold text-gray-900 mb-4">{formData.penerimaPIC || '-'}</p>
 
@@ -522,7 +533,7 @@ const Pesanan = ({ onComplete }) => {
 
         <div className="flex items-center gap-6">
           <div className="w-24 h-24 bg-gray-200 rounded-xl overflow-hidden shrink-0">
-            <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=2070&auto=format&fit=crop" alt="Kendaraan" className="w-full h-full object-cover" />
+            <img src="/images/isuzu-truck.jpg" alt="Kendaraan" className="w-full h-full object-cover" />
           </div>
           <div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">{formData.kendaraan || 'Belum Dipilih'}</h3>
@@ -539,7 +550,7 @@ const Pesanan = ({ onComplete }) => {
           <div className="relative pl-10">
             {/* Timeline Line */}
             <div className="absolute left-[11px] top-6 bottom-10 w-[2px] border-l-[2px] border-dashed border-gray-300"></div>
-            
+
             <div className="mb-10 relative">
               <div className="absolute -left-[40px] top-1 w-6 h-6 border-[3px] border-[#F5BC00] bg-white rounded-full flex items-center justify-center z-10">
                 <div className="w-2 h-2 bg-[#F5BC00] rounded-full"></div>
@@ -576,13 +587,13 @@ const Pesanan = ({ onComplete }) => {
           </div>
 
           <div className="flex gap-4 h-[140px]">
-            <button 
+            <button
               onClick={() => prevStep(3)}
               className="flex-1 bg-white border border-gray-200 text-gray-900 text-[17px] font-bold rounded-2xl hover:bg-gray-50 transition-colors flex items-center justify-center"
             >
               Kembali
             </button>
-            <button 
+            <button
               onClick={() => setShowSuccessModal(true)}
               disabled={!formData.agreed}
               className="flex-1 bg-[#F5BC00] hover:bg-[#F5BC00]/90 text-white font-bold rounded-2xl shadow-lg shadow-[#F5BC00]/20 transition-all flex flex-col items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
@@ -612,7 +623,7 @@ const Pesanan = ({ onComplete }) => {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">Pesanan Berhasil di Buat</h2>
             <p className="text-gray-500 mb-8">Tunggu Verifikasi Admin</p>
-            <button 
+            <button
               onClick={() => {
                 setShowSuccessModal(false);
                 setFormData({
@@ -621,7 +632,7 @@ const Pesanan = ({ onComplete }) => {
                   penerimaNama: '', penerimaAlamat: '', penerimaPIC: '', penerimaTelp: '',
                   kendaraan: '', agreed: false,
                 });
-                setStep(1); 
+                setStep(1);
                 if (onComplete) onComplete();
               }}
               className="text-gray-400 hover:text-gray-600 text-sm font-semibold"
@@ -674,16 +685,18 @@ const ProgressBar = ({ currentStep }) => {
 };
 
 const PesananBerlangsung = () => {
-  const [statusStep, setStatusStep] = useState(1); 
+  const [statusStep, setStatusStep] = useState(1);
   const [showReviewSuccess, setShowReviewSuccess] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
 
   return (
     <div className="animate-in fade-in duration-500 relative">
       <div className="absolute -top-12 right-0 flex gap-2">
-         <span className="text-xs text-gray-400 self-center mr-2">Demo Status:</span>
-         <button onClick={() => setStatusStep(1)} className="px-2 py-1 text-xs bg-gray-200 rounded">1</button>
-         <button onClick={() => setStatusStep(2)} className="px-2 py-1 text-xs bg-gray-200 rounded">2</button>
-         <button onClick={() => setStatusStep(3)} className="px-2 py-1 text-xs bg-gray-200 rounded">3</button>
+        <span className="text-xs text-gray-400 self-center mr-2">Demo Status:</span>
+        <button onClick={() => setStatusStep(1)} className="px-2 py-1 text-xs bg-gray-200 rounded">1</button>
+        <button onClick={() => setStatusStep(2)} className="px-2 py-1 text-xs bg-gray-200 rounded">2</button>
+        <button onClick={() => setStatusStep(3)} className="px-2 py-1 text-xs bg-gray-200 rounded">3</button>
       </div>
 
       <ProgressBar currentStep={statusStep} />
@@ -703,11 +716,11 @@ const PesananBerlangsung = () => {
                     Menunggu Verifikasi Admin
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <p className="text-[10px] font-bold tracking-wider text-gray-400 mb-1 uppercase">Detail Barang</p>
-                    <p className="font-bold text-gray-900 text-lg">Suku Cadang Alat Berat <br className="hidden md:block"/> (Excavator)</p>
+                    <p className="font-bold text-gray-900 text-lg">Suku Cadang Alat Berat <br className="hidden md:block" /> (Excavator)</p>
                     <p className="text-sm text-gray-500 mt-2">Total Berat: 450 Kg | 2 Pallet</p>
                   </div>
                   <div>
@@ -870,7 +883,7 @@ const PesananBerlangsung = () => {
                   Selesai & Terkirim
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
                 <div>
                   <p className="text-xs font-bold tracking-wider text-gray-400 mb-1">DETAIL BARANG</p>
@@ -890,19 +903,24 @@ const PesananBerlangsung = () => {
                 <Star className="w-5 h-5 text-orange-400 fill-orange-400" />
                 <h3 className="font-bold text-gray-900 text-lg">Beri Ulasan Layanan</h3>
               </div>
-              
+
               <div className="bg-white p-6 rounded-xl shadow-sm">
                 <p className="text-center font-bold text-gray-900 mb-4">Bagaimana pengalaman pengiriman Anda?</p>
-                <div className="flex justify-center gap-2 mb-6">
-                  {[1,2,3,4,5].map((star) => (
-                    <Star key={star} className="w-8 h-8 text-[#F5BC00] cursor-pointer hover:scale-110 transition-transform" />
+                <div className="flex justify-center gap-2 mb-6" onMouseLeave={() => setHoverRating(0)}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star 
+                      key={star} 
+                      className={`w-8 h-8 cursor-pointer transition-transform hover:scale-110 ${star <= (hoverRating || rating) ? 'text-[#F5BC00] fill-[#F5BC00]' : 'text-gray-300'}`}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onClick={() => setRating(star)}
+                    />
                   ))}
                 </div>
-                <textarea 
+                <textarea
                   placeholder="Tuliskan feedback Anda untuk membantu kami meningkatkan layanan..."
                   className="w-full h-24 bg-gray-50 border border-gray-200 rounded-lg p-4 resize-none focus:outline-none focus:ring-2 focus:ring-[#F5BC00] mb-4"
                 ></textarea>
-                <button 
+                <button
                   onClick={() => setShowReviewSuccess(true)}
                   className="w-full bg-[#F5BC00] hover:bg-[#F5BC00]/90 text-white font-bold py-3 px-4 rounded-xl transition-colors"
                 >
@@ -912,21 +930,21 @@ const PesananBerlangsung = () => {
             </div>
 
             {showReviewSuccess && (
-               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-                 <div className="bg-white rounded-3xl p-12 max-w-md w-full mx-4 text-center shadow-2xl animate-in zoom-in-95 duration-300">
-                   <div className="w-24 h-24 mx-auto mb-6 rounded-full border-4 border-green-500 flex items-center justify-center bg-green-50">
-                     <Check className="w-12 h-12 text-green-500" strokeWidth={3} />
-                   </div>
-                   <h2 className="text-2xl font-bold text-gray-900 mb-3">Ulasan Berhasil di Buat</h2>
-                   <p className="text-gray-500 mb-8">Terima kasih atas ulasan anda</p>
-                   <button 
-                     onClick={() => setShowReviewSuccess(false)}
-                     className="text-gray-400 hover:text-gray-600 text-sm font-semibold"
-                   >
-                     Tutup
-                   </button>
-                 </div>
-               </div>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                <div className="bg-white rounded-3xl p-12 max-w-md w-full mx-4 text-center shadow-2xl animate-in zoom-in-95 duration-300">
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-full border-4 border-green-500 flex items-center justify-center bg-green-50">
+                    <Check className="w-12 h-12 text-green-500" strokeWidth={3} />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Ulasan Berhasil di Buat</h2>
+                  <p className="text-gray-500 mb-8">Terima kasih atas ulasan anda</p>
+                  <button
+                    onClick={() => setShowReviewSuccess(false)}
+                    className="text-gray-400 hover:text-gray-600 text-sm font-semibold"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              </div>
             )}
           </>
         )}
@@ -954,12 +972,16 @@ const HistoryPesanan = () => {
     return (
       <div className="max-w-4xl animate-in fade-in slide-in-from-right-8 duration-300">
         <button onClick={() => setViewDetail(false)} className="text-sm font-bold text-gray-500 mb-6 flex items-center gap-2 hover:text-gray-900">
-           &larr; KEMBALI KE HISTORY
+          &larr; KEMBALI KE HISTORY
         </button>
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Detail Pesanan Saya</h1>
-          <p className="text-gray-500">Kelola dan pantau seluruh pengiriman logistik Anda dengan mudah.</p>
-          <p className="text-xs font-bold text-gray-400 tracking-wider mt-2">HISTORY PESANAN &gt; Order #MPL-992831</p>
+        <div className="mb-10 flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Detail Pesanan Saya</h1>
+            <p className="text-xs font-bold text-gray-400 tracking-wider mt-2">HISTORY PESANAN &gt; Order #MPL-992831</p>
+          </div>
+          <button onClick={() => alert("Mengunduh Invoice...")} className="flex items-center justify-center gap-2 bg-white border-2 border-gray-200 hover:border-[#F5BC00] hover:text-[#F5BC00] text-gray-700 font-bold py-2.5 px-5 rounded-xl transition-colors shrink-0">
+            <Download className="w-4 h-4" /> Download Invoice
+          </button>
         </div>
 
         <ProgressBar currentStep={3} />
@@ -1020,26 +1042,26 @@ const HistoryPesanan = () => {
           </div>
 
           <div className="bg-[#F8F9FA] rounded-2xl p-6">
-             <h3 className="text-[13px] font-bold text-gray-600 tracking-widest mb-6 uppercase">RUTE PENGIRIMAN</h3>
-             <div className="relative pl-8">
-                <div className="absolute left-[9px] top-4 bottom-6 w-[2px] border-l-[2px] border-dashed border-gray-300"></div>
-                <div className="mb-8 relative">
-                   <div className="absolute -left-[32px] top-1 w-5 h-5 bg-white border-[3px] border-[#F5BC00] rounded-full flex items-center justify-center z-10">
-                     <div className="w-1.5 h-1.5 bg-[#F5BC00] rounded-full"></div>
-                   </div>
-                   <p className="text-[10px] font-bold text-[#F5BC00] mb-1 tracking-wider uppercase">TITIK MUAT — JAKARTA UTARA</p>
-                   <h4 className="text-sm font-bold text-gray-900 mb-0.5">Kawasan Industri Pulogadung</h4>
-                   <p className="text-xs text-gray-500">Blok C No. 12, Pergudangan Logistics, Jakarta 13920</p>
+            <h3 className="text-[13px] font-bold text-gray-600 tracking-widest mb-6 uppercase">RUTE PENGIRIMAN</h3>
+            <div className="relative pl-8">
+              <div className="absolute left-[9px] top-4 bottom-6 w-[2px] border-l-[2px] border-dashed border-gray-300"></div>
+              <div className="mb-8 relative">
+                <div className="absolute -left-[32px] top-1 w-5 h-5 bg-white border-[3px] border-[#F5BC00] rounded-full flex items-center justify-center z-10">
+                  <div className="w-1.5 h-1.5 bg-[#F5BC00] rounded-full"></div>
                 </div>
-                <div className="relative">
-                   <div className="absolute -left-[34px] top-1 w-6 h-6 bg-[#F5BC00] text-white flex items-center justify-center rounded-full z-10">
-                      <MapPin className="w-3.5 h-3.5 text-white" fill="white" strokeWidth={2} />
-                   </div>
-                   <p className="text-[10px] font-bold text-[#F5BC00] mb-1 tracking-wider uppercase">TITIK BONGKAR — SURABAYA</p>
-                   <h4 className="text-sm font-bold text-gray-900 mb-0.5">Margomulyo Permai</h4>
-                   <p className="text-xs text-gray-500">Jl. Greges Jaya II, Pergudangan B-14, Surabaya 60183</p>
+                <p className="text-[10px] font-bold text-[#F5BC00] mb-1 tracking-wider uppercase">TITIK MUAT — JAKARTA UTARA</p>
+                <h4 className="text-sm font-bold text-gray-900 mb-0.5">Kawasan Industri Pulogadung</h4>
+                <p className="text-xs text-gray-500">Blok C No. 12, Pergudangan Logistics, Jakarta 13920</p>
+              </div>
+              <div className="relative">
+                <div className="absolute -left-[34px] top-1 w-6 h-6 bg-[#F5BC00] text-white flex items-center justify-center rounded-full z-10">
+                  <MapPin className="w-3.5 h-3.5 text-white" fill="white" strokeWidth={2} />
                 </div>
-             </div>
+                <p className="text-[10px] font-bold text-[#F5BC00] mb-1 tracking-wider uppercase">TITIK BONGKAR — SURABAYA</p>
+                <h4 className="text-sm font-bold text-gray-900 mb-0.5">Margomulyo Permai</h4>
+                <p className="text-xs text-gray-500">Jl. Greges Jaya II, Pergudangan B-14, Surabaya 60183</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1064,7 +1086,7 @@ const HistoryPesanan = () => {
                 <Check className="w-3 h-3" /> SELESAI
               </span>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
                 <p className="text-[10px] font-bold tracking-wider text-gray-400 mb-1">TANGGAL PENGIRIMAN</p>
@@ -1083,9 +1105,14 @@ const HistoryPesanan = () => {
               </div>
             </div>
           </div>
-          <button onClick={() => setViewDetail(true)} className="w-full md:w-auto shrink-0 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-xl transition-colors whitespace-nowrap">
-            Lihat Detail &rarr;
-          </button>
+          <div className="flex flex-col gap-3 w-full md:w-auto shrink-0 mt-4 md:mt-0">
+            <button onClick={() => alert("Mengunduh Invoice...")} className="w-full flex items-center justify-center gap-2 bg-white border-2 border-gray-200 hover:border-[#F5BC00] hover:text-[#F5BC00] text-gray-700 font-bold py-3 px-6 rounded-xl transition-colors whitespace-nowrap">
+              <Download className="w-4 h-4" /> Invoice
+            </button>
+            <button onClick={() => setViewDetail(true)} className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-xl transition-colors whitespace-nowrap">
+              Lihat Detail &rarr;
+            </button>
+          </div>
         </div>
 
         {/* Card 2 */}
@@ -1097,7 +1124,7 @@ const HistoryPesanan = () => {
                 <Check className="w-3 h-3" /> SELESAI
               </span>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
                 <p className="text-[10px] font-bold tracking-wider text-gray-400 mb-1">TANGGAL PENGIRIMAN</p>
@@ -1116,9 +1143,14 @@ const HistoryPesanan = () => {
               </div>
             </div>
           </div>
-          <button onClick={() => setViewDetail(true)} className="w-full md:w-auto shrink-0 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-xl transition-colors whitespace-nowrap">
-            Lihat Detail &rarr;
-          </button>
+          <div className="flex flex-col gap-3 w-full md:w-auto shrink-0 mt-4 md:mt-0">
+            <button onClick={() => alert("Mengunduh Invoice...")} className="w-full flex items-center justify-center gap-2 bg-white border-2 border-gray-200 hover:border-[#F5BC00] hover:text-[#F5BC00] text-gray-700 font-bold py-3 px-6 rounded-xl transition-colors whitespace-nowrap">
+              <Download className="w-4 h-4" /> Invoice
+            </button>
+            <button onClick={() => setViewDetail(true)} className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-xl transition-colors whitespace-nowrap">
+              Lihat Detail &rarr;
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1131,7 +1163,7 @@ const HistoryPesanan = () => {
 
 export default function App() {
   const [hasFirstOrder, setHasFirstOrder] = useState(false);
-  const [activeMenu, setActiveMenu] = useState('berlangsung'); 
+  const [activeMenu, setActiveMenu] = useState('berlangsung');
 
   const handleOrderComplete = () => {
     setHasFirstOrder(true);
@@ -1153,39 +1185,37 @@ export default function App() {
         </main>
       ) : (
         <div className="flex flex-1 mx-auto w-full animate-in fade-in duration-700">
-          
+
           {/* Sidebar Menu Utama */}
           <aside className="w-80 bg-[#F9FAFB] border-r border-gray-200 hidden md:flex flex-col shrink-0 z-10 pt-4">
             <div className="p-8 pb-8">
               <h2 className="text-[28px] leading-tight font-bold text-gray-900 mb-2 font-['Manrope',_sans-serif]">Order Manifest</h2>
               <p className="text-[13px] font-medium text-gray-500 uppercase tracking-wide">Step-by-step logistics entry</p>
             </div>
-            
+
             <nav className="flex flex-col gap-2 pr-6">
-              <button 
+              <button
                 onClick={() => {
                   setActiveMenu('berlangsung');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`flex items-center gap-5 w-full py-5 pl-8 pr-4 text-[15px] font-bold transition-all uppercase tracking-wide ${
-                  activeMenu === 'berlangsung' 
-                    ? 'bg-white text-[#F5BC00] shadow-[0_8px_30px_rgba(0,0,0,0.04)] rounded-r-2xl border-l-[8px] border-[#F5BC00]' 
-                    : 'text-gray-400 hover:text-gray-600 border-l-[8px] border-transparent'
-                }`}
+                className={`flex items-center gap-5 w-full py-5 pl-8 pr-4 text-[15px] font-bold transition-all uppercase tracking-wide ${activeMenu === 'berlangsung'
+                  ? 'bg-white text-[#F5BC00] shadow-[0_8px_30px_rgba(0,0,0,0.04)] rounded-r-2xl border-l-[8px] border-[#F5BC00]'
+                  : 'text-gray-400 hover:text-gray-600 border-l-[8px] border-transparent'
+                  }`}
               >
                 <Archive className="w-7 h-7" strokeWidth={2} /> PESANAN BERLANGSUNG
               </button>
-              
-              <button 
+
+              <button
                 onClick={() => {
                   setActiveMenu('history');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`flex items-center gap-5 w-full py-5 pl-8 pr-4 text-[15px] font-bold transition-all uppercase tracking-wide ${
-                  activeMenu === 'history' 
-                    ? 'bg-white text-[#F5BC00] shadow-[0_8px_30px_rgba(0,0,0,0.04)] rounded-r-2xl border-l-[8px] border-[#F5BC00]' 
-                    : 'text-gray-400 hover:text-gray-600 border-l-[8px] border-transparent'
-                }`}
+                className={`flex items-center gap-5 w-full py-5 pl-8 pr-4 text-[15px] font-bold transition-all uppercase tracking-wide ${activeMenu === 'history'
+                  ? 'bg-white text-[#F5BC00] shadow-[0_8px_30px_rgba(0,0,0,0.04)] rounded-r-2xl border-l-[8px] border-[#F5BC00]'
+                  : 'text-gray-400 hover:text-gray-600 border-l-[8px] border-transparent'
+                  }`}
               >
                 <ClipboardList className="w-7 h-7" strokeWidth={2} /> HISTORY PESANAN
               </button>
