@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -76,6 +77,18 @@ public class OrderService {
         orderRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan"));
         List<Order> order = orderRepository.findByUserAndStatus(user, status);
+        if (order.isEmpty()) {
+            throw new RuntimeException("Pesanan yang sedang dilakukan tidak ditemukan");
+        }
+        return order;
+    }
+
+    public Optional<Order> viewAllOrder(String username) {
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
+        orderRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan"));
+        Optional<Order> order = orderRepository.findByUser(user);
         if (order.isEmpty()) {
             throw new RuntimeException("Pesanan yang sedang dilakukan tidak ditemukan");
         }
