@@ -1,13 +1,18 @@
 package com.BE_SiLogisMPL.ComPro.Controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,11 +21,14 @@ import org.springframework.web.multipart.MultipartFile;
 import com.BE_SiLogisMPL.ComPro.DTO.AdminDashboard;
 import com.BE_SiLogisMPL.ComPro.DTO.AdminProfileDTO;
 import com.BE_SiLogisMPL.ComPro.DTO.CompanyProfileDTO;
+import com.BE_SiLogisMPL.ComPro.DTO.UlasanDTO;
 import com.BE_SiLogisMPL.ComPro.DTO.UserProfileDTO;
 import com.BE_SiLogisMPL.ComPro.DTO.WebResponse;
 import com.BE_SiLogisMPL.ComPro.Entity.CompanyProfile;
+import com.BE_SiLogisMPL.ComPro.Entity.Ulasan;
 import com.BE_SiLogisMPL.ComPro.Entity.User;
 import com.BE_SiLogisMPL.ComPro.Entity.UserNotifikasi;
+import com.BE_SiLogisMPL.ComPro.Service.UlasanService;
 import com.BE_SiLogisMPL.ComPro.Service.UserService;
 
 import jakarta.validation.Valid;
@@ -31,6 +39,9 @@ public class UserController {
 
         @Autowired
         private UserService userService;
+
+        @Autowired
+        private UlasanService ulasanService;
 
         @GetMapping("/admin/dashboard")
         @PreAuthorize("hasRole('ADMIN')")
@@ -182,6 +193,72 @@ public class UserController {
                 String username = userDetails.getUsername();
                 CompanyProfile token = userService.viewUserCompanyProfile(username);
                 return WebResponse.<CompanyProfile>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @PostMapping("/create/ulasan/{orderId}")
+        @PreAuthorize("hasRole('USER')")
+        public WebResponse<String> createUlasan(@RequestBody UlasanDTO ulasanDTO, @PathVariable Long orderId,
+                        Authentication authentication) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                String token = ulasanService.createUlasan(username, orderId, ulasanDTO);
+                return WebResponse.<String>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @GetMapping("/view/ulasan")
+        @PreAuthorize("hasRole('USER')")
+        public WebResponse<List<Ulasan>> viewUlasan() {
+                List<Ulasan> token = ulasanService.viewUlasan();
+                return WebResponse.<List<Ulasan>>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @GetMapping("/admin/view/ulasan")
+        @PreAuthorize("hasRole('ADMIN')")
+        public WebResponse<List<Ulasan>> viewUlasanAdmin() {
+                List<Ulasan> token = ulasanService.viewUlasan();
+                return WebResponse.<List<Ulasan>>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @PostMapping("/admin/reply/ulasan/{ulasanId}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public WebResponse<String> replyUlasan(Authentication authentication, @PathVariable Long ulasanId,
+                        @RequestBody UlasanDTO ulasanDTO) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                String token = ulasanService.replyUlasan(ulasanId, ulasanDTO);
+                return WebResponse.<String>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @DeleteMapping("/admin/delete/ulasan/{ulasanId}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public WebResponse<String> deleteUlasan(Authentication authentication, @PathVariable Long ulasanId) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                String token = ulasanService.deleteUlasan(ulasanId);
+                return WebResponse.<String>builder()
                                 .code(HttpStatus.OK.value())
                                 .status(HttpStatus.OK.getReasonPhrase())
                                 .data(token)
