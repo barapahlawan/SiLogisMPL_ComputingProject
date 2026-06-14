@@ -157,7 +157,8 @@ public class UserService {
         CompanyProfile companyProfile = user.getCompanyProfile();
         try {
             System.out.println("outsave");
-            if (companyProfileDTO.getFileGambarOtomatis() != null && !companyProfileDTO.getFileGambarOtomatis().isEmpty()) {
+            if (companyProfileDTO.getFileGambarOtomatis() != null
+                    && !companyProfileDTO.getFileGambarOtomatis().isEmpty()) {
                 String urlImage = fileStorageService.uploadFile(companyProfileDTO.getFileGambarOtomatis());
                 companyProfileDTO.setUrlGambarOtomatis(urlImage);
             }

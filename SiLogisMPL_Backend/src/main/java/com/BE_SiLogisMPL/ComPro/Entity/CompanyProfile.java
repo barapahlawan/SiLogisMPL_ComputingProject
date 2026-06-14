@@ -48,7 +48,7 @@ public class CompanyProfile {
         private String paragrafUtama;
         private String paragrafLanjutan;
         @JdbcTypeCode(SqlTypes.JSON)
-        @Column(columnDefinition = "json")
+        @Column(name = "info_kilat", columnDefinition = "text")
         private List<Map<String, Object>> infoKilat;
         private int noVisi;
         private String judulVisi;
@@ -58,18 +58,18 @@ public class CompanyProfile {
         private List<String> poinMisi;
         private String judulSeksiNilai;
         @JdbcTypeCode(SqlTypes.JSON)
-        @Column(columnDefinition = "json")
+        @Column(name = "nilai", columnDefinition = "text")
         private List<Map<String, Object>> nilai;
         private String judulSeksiLayanan;
         private String subJudulSeksiLayanan;
         private String deskripsiSampingKanan;
         @JdbcTypeCode(SqlTypes.JSON)
-        @Column(columnDefinition = "json")
+        @Column(name = "layanan", columnDefinition = "text")
         private List<Map<String, Object>> layanan;
         private String judulSeksiKendaraan;
         private String deskripsiPengantar;
         private String teksTombolLihatSemua;
         @JdbcTypeCode(SqlTypes.JSON)
-        @Column(columnDefinition = "json")
+        @Column(name = "kendaraan", columnDefinition = "text")
         private List<Map<String, Object>> kendaraan;
 }
