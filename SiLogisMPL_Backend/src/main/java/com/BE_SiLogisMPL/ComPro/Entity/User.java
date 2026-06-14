@@ -49,4 +49,6 @@ public class User {
     private AdminProfile adminProfile;
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserNotifikasi userNotifikasi;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Ulasan> ulasan;
 }
