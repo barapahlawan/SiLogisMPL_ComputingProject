@@ -8,7 +8,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { api } from '../lib/api';
-import { useData } from '../contexts/DataContext';
 
 const Pesanan = ({ onComplete, onBack }) => {
   const navigate = useNavigate();
@@ -383,30 +382,9 @@ const Pesanan = ({ onComplete, onBack }) => {
 
   const renderStep3 = () => {
     const armadas = [
-      {
-        id: 'Pickup',
-        name: 'Pickup',
-        badge: 'PERKOTAAN',
-        badgeColor: 'bg-blue-100 text-blue-600',
-        capacity: '720 Kg',
-        img: '/images/pickup-truck.jpg',
-      },
-      {
-        id: 'Truck',
-        name: 'Truck',
-        badge: 'MENENGAH',
-        badgeColor: 'bg-yellow-100 text-yellow-700',
-        capacity: '4.000 Kg',
-        img: '/images/isuzu-truck.jpg',
-      },
-      {
-        id: 'Fuso',
-        name: 'Fuso',
-        badge: 'BERAT',
-        badgeColor: 'bg-red-100 text-red-600',
-        capacity: '8.000 Kg',
-        img: '/images/fuso-truck.jpg',
-      },
+      { id: 'Pickup', name: 'Pickup', badge: 'PERKOTAAN', badgeColor: 'bg-blue-100 text-blue-600', capacity: '720 Kg', img: '/images/pickup-truck.jpg' },
+      { id: 'Truck', name: 'Truck', badge: 'MENENGAH', badgeColor: 'bg-yellow-100 text-yellow-700', capacity: '4.000 Kg', img: '/images/isuzu-truck.jpg' },
+      { id: 'Fuso', name: 'Fuso', badge: 'BERAT', badgeColor: 'bg-red-100 text-red-600', capacity: '8.000 Kg', img: '/images/fuso-truck.jpg' },
     ];
 
     const handleSelectArmada = (id) => {
@@ -417,9 +395,7 @@ const Pesanan = ({ onComplete, onBack }) => {
       <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-right-8 duration-500 p-8">
         <div className="mb-10">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Pilih Armada Pengiriman</h1>
-          <p className="text-gray-500">
-            Sesuaikan kapasitas kendaraan dengan muatan logistik Anda.
-          </p>
+          <p className="text-gray-500">Sesuaikan kapasitas kendaraan dengan muatan logistik Anda.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -428,8 +404,7 @@ const Pesanan = ({ onComplete, onBack }) => {
             return (
               <div
                 key={armada.id}
-                className={`bg-white rounded-3xl p-6 shadow-sm border transition-all cursor-pointer ${isSelected ? 'border-l-4 border-[#F5BC00]' : 'border-gray-100 hover:border-gray-200'
-                  }`}
+                className={`bg-white rounded-3xl p-6 shadow-sm border transition-all cursor-pointer ${isSelected ? 'border-l-4 border-[#F5BC00]' : 'border-gray-100 hover:border-gray-200'}`}
                 onClick={() => handleSelectArmada(armada.id)}
               >
                 <div className="h-40 bg-gray-100 rounded-2xl mb-6 overflow-hidden">
@@ -452,10 +427,7 @@ const Pesanan = ({ onComplete, onBack }) => {
 
                 <button
                   type="button"
-                  className={`w-full py-3 px-4 rounded-xl font-bold transition-all ${isSelected
-                    ? 'bg-[#F5BC00] text-white shadow-md'
-                    : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                    }`}
+                  className={`w-full py-3 px-4 rounded-xl font-bold transition-all ${isSelected ? 'bg-[#F5BC00] text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
                 >
                   {isSelected ? 'TERPILIH' : 'Pilih Kendaraan'}
                 </button>
@@ -466,18 +438,11 @@ const Pesanan = ({ onComplete, onBack }) => {
 
         <div className="bg-white rounded-2xl shadow-sm border-t-4 border-[#F5BC00] p-6 mb-16 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
-            <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1">
-              KENDARAAN TERPILIH
-            </p>
+            <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1">KENDARAAN TERPILIH</p>
             <h3 className="text-2xl font-bold text-gray-900">{formData.kendaraan || '-'}</h3>
           </div>
           <div className="flex items-center gap-4 w-full sm:w-auto">
-            <button
-              onClick={() => prevStep(2)}
-              className="flex-1 sm:flex-none px-6 py-3 text-sm font-bold text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
-            >
-              Kembali
-            </button>
+            <button onClick={() => prevStep(2)} className="flex-1 sm:flex-none px-6 py-3 text-sm font-bold text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">Kembali</button>
             <button
               onClick={() => nextStep(4)}
               disabled={!formData.kendaraan}
@@ -485,42 +450,6 @@ const Pesanan = ({ onComplete, onBack }) => {
             >
               Lanjut ke Tinjauan
             </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">Informasi Standar Operasional</h3>
-            <p className="text-gray-500 mb-6 text-sm leading-relaxed">
-              Setiap armada kami dilengkapi dengan GPS tracking real-time dan driver profesional yang tersertifikasi untuk menangani berbagai jenis muatan.
-            </p>
-            <ul className="space-y-4">
-              <li className="flex items-center gap-3 text-sm font-bold text-gray-700">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#F5BC00]"></div>
-                Layanan Bongkar Muat Tersedia
-              </li>
-              <li className="flex items-center gap-3 text-sm font-bold text-gray-700">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#F5BC00]"></div>
-                Asuransi Perjalanan Hingga IDR 100jt
-              </li>
-              <li className="flex items-center gap-3 text-sm font-bold text-gray-700">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#F5BC00]"></div>
-                E-Receipt & Faktur Pajak Otomatis
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-[#F5F5F5] rounded-3xl p-8 relative overflow-hidden">
-            <div className="relative z-10">
-              <h4 className="text-xl font-bold text-gray-900 mb-3">Butuh Armada Khusus?</h4>
-              <p className="text-sm text-gray-600 mb-8 leading-relaxed max-w-sm">
-                Kami juga menyediakan solusi logistik untuk muatan industri besar seperti Wingbox atau Trailer dengan sistem kontrak.
-              </p>
-              <button className="bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold py-3 px-6 rounded-lg uppercase tracking-wider transition-colors">
-                HUBUNGI SALES
-              </button>
-            </div>
-            <div className="absolute -bottom-8 -right-8 w-32 h-32 border-8 border-gray-200 rounded-2xl opacity-50"></div>
           </div>
         </div>
       </div>
@@ -531,9 +460,7 @@ const Pesanan = ({ onComplete, onBack }) => {
     <div className="max-w-5xl mx-auto animate-in fade-in zoom-in-95 duration-500 p-8">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">Ringkasan Pengiriman</h1>
-        <p className="text-gray-500">
-          Mohon periksa kembali seluruh informasi di bawah ini sebelum mengonfirmasi pesanan logistik Anda. Pastikan detail armada dan rute sudah sesuai.
-        </p>
+        <p className="text-gray-500">Mohon periksa kembali seluruh informasi di bawah ini sebelum mengonfirmasi pesanan logistik Anda. Pastikan detail armada dan rute sudah sesuai.</p>
       </div>
 
       <div className="bg-white rounded-3xl p-8 shadow-sm border-l-4 border-[#F5BC00] mb-6 relative">
@@ -542,25 +469,20 @@ const Pesanan = ({ onComplete, onBack }) => {
         </div>
 
         <h3 className="text-xs font-bold text-gray-400 tracking-widest mb-6">INFORMASI PELANGGAN</h3>
-
         <div className="grid grid-cols-2 gap-8 mb-10 border-b border-gray-100 pb-10">
           <div>
             <p className="text-xs font-bold text-gray-500 mb-1 tracking-wider uppercase">Nama Pengirim / Gudang</p>
             <p className="text-lg font-bold text-gray-900 mb-4">{formData.pengirimNama || '-'}</p>
-
             <p className="text-xs font-bold text-gray-500 mb-1 tracking-wider uppercase">PIC Pengirim</p>
             <p className="font-bold text-gray-900 mb-4">{formData.pengirimPIC || '-'}</p>
-
             <p className="text-xs font-bold text-gray-500 mb-1 tracking-wider uppercase">Nomor Telepon Pengirim</p>
             <p className="font-bold text-gray-900">{formData.pengirimTelp || '-'}</p>
           </div>
           <div>
             <p className="text-xs font-bold text-gray-500 mb-1 tracking-wider uppercase">Nama Penerima / Gudang</p>
             <p className="text-lg font-bold text-gray-900 mb-4">{formData.penerimaNama || '-'}</p>
-
             <p className="text-xs font-bold text-gray-500 mb-1 tracking-wider uppercase">PIC Penerima</p>
             <p className="font-bold text-gray-900 mb-4">{formData.penerimaPIC || '-'}</p>
-
             <p className="text-xs font-bold text-gray-500 mb-1 tracking-wider uppercase">Nomor Telepon Penerima</p>
             <p className="font-bold text-gray-900">{formData.penerimaTelp || '-'}</p>
           </div>
@@ -639,12 +561,7 @@ const Pesanan = ({ onComplete, onBack }) => {
           </div>
 
           <div className="flex gap-4 h-[140px]">
-            <button
-              onClick={() => prevStep(3)}
-              className="flex-1 bg-white border border-gray-200 text-gray-900 text-[17px] font-bold rounded-2xl hover:bg-gray-50 transition-colors flex items-center justify-center"
-            >
-              Kembali
-            </button>
+            <button onClick={() => prevStep(3)} className="flex-1 bg-white border border-gray-200 text-gray-900 text-[17px] font-bold rounded-2xl hover:bg-gray-50 transition-colors flex items-center justify-center">Kembali</button>
             <button
               onClick={handleSubmit}
               disabled={!formData.agreed}
@@ -704,7 +621,7 @@ const ProgressBar = ({ currentStep }) => {
         <div className="absolute left-[40px] right-[40px] top-5 h-2 bg-gray-200 rounded-full z-0"></div>
         <div
           className="absolute left-[40px] top-5 h-2 bg-[#F5BC00] rounded-full z-0 transition-all duration-500"
-          style={{ width: currentStep === 1 ? '0%' : currentStep === 2 ? 'calc(50% - 40px)' : 'calc(100% - 80px)' }}
+          style={{ width: currentStep === 1 ? '0%' : currentStep === 2 ? 'calc(50% - 20px)' : '100%' }}
         ></div>
 
         {[
@@ -753,12 +670,12 @@ const PesananBerlangsungList = ({ orders, onReviewComplete }) => {
         >
           <ArrowRight className="w-4 h-4 rotate-180" /> Kembali ke Daftar Pesanan
         </button>
-        <PesananBerlangsung 
-          order={selectedOrder} 
+        <PesananBerlangsung
+          order={selectedOrder}
           onReviewComplete={() => {
             setSelectedOrder(null);
             if (onReviewComplete) onReviewComplete();
-          }} 
+          }}
         />
       </div>
     );
@@ -777,11 +694,7 @@ const PesananBerlangsungList = ({ orders, onReviewComplete }) => {
               <div className="flex gap-4 items-center mb-4">
                 <span className="font-bold text-gray-900 bg-gray-100 px-3 py-1 rounded text-sm">#{order?.orderNumber || "MPL-DEMO"}</span>
                 <span className="text-[11px] font-bold tracking-wider uppercase text-[#F5BC00] bg-[#F5BC00]/10 px-2 py-1 rounded">
-<<<<<<< HEAD
-                  {order?.status === 'PENDING' ? 'VERIFIKASI' : order?.status === 'ONGOING' || order?.status === 'Diproses' ? 'PENGANTARAN' : order?.status}
-=======
                   {order?.status === 'PENDING' ? 'VERIFIKASI' : order?.status === 'ONGOING' || order?.status === 'ACCEPT' || order?.status === 'Diproses' ? 'PENGANTARAN' : order?.status === 'COMPLETED' ? 'SELESAI' : order?.status}
->>>>>>> e62b542c87e39e7bfb8791004b25ef13f3f599ae
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -819,11 +732,7 @@ const PesananBerlangsungList = ({ orders, onReviewComplete }) => {
 const PesananBerlangsung = ({ order, onReviewComplete }) => {
   let statusStep = 1;
   if (order?.status === 'PENDING') statusStep = 1;
-<<<<<<< HEAD
-  else if (order?.status === 'ONGOING' || order?.status === 'Diproses') statusStep = 2;
-=======
   else if (order?.status === 'ONGOING' || order?.status === 'ACCEPT' || order?.status === 'Diproses') statusStep = 2;
->>>>>>> e62b542c87e39e7bfb8791004b25ef13f3f599ae
   else statusStep = 3;
 
   const [showReviewSuccess, setShowReviewSuccess] = useState(false);
@@ -831,7 +740,6 @@ const PesananBerlangsung = ({ order, onReviewComplete }) => {
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { fetchUserOrders } = useData();
 
   const handleSubmitReview = async () => {
     if (!rating) {
@@ -842,7 +750,6 @@ const PesananBerlangsung = ({ order, onReviewComplete }) => {
     try {
       await api.post(`/user/create/ulasan/${order.id}`, { rating, komentar: reviewText });
       setShowReviewSuccess(true);
-      fetchUserOrders();
     } catch (error) {
       console.error(error);
       toast.error("Gagal mengirim ulasan");
@@ -973,9 +880,7 @@ const PesananBerlangsung = ({ order, onReviewComplete }) => {
 
             <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6 items-start">
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#F5BC00]">
-                <p className="text-[11px] font-bold tracking-wider text-gray-600 mb-5 uppercase">
-                  Informasi Pengantar
-                </p>
+                <p className="text-[11px] font-bold tracking-wider text-gray-600 mb-5 uppercase">Informasi Pengantar</p>
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-[72px] h-[72px] bg-[#EFEFEF] rounded-2xl flex items-center justify-center shrink-0">
                     <UserIcon className="w-8 h-8 text-gray-700" />
@@ -1005,9 +910,7 @@ const PesananBerlangsung = ({ order, onReviewComplete }) => {
 
               <div className="bg-[#DCEFFE] p-7 lg:p-8 rounded-2xl flex flex-col h-fit">
                 <h3 className="font-bold text-gray-900 text-lg mb-3">Butuh Bantuan?</h3>
-                <p className="text-[15px] text-slate-700 mb-8 leading-relaxed">
-                  Ada kendala dalam penerimaan barang? Tim operasional kami siap membantu.
-                </p>
+                <p className="text-[15px] text-slate-700 mb-8 leading-relaxed">Ada kendala dalam penerimaan barang? Tim operasional kami siap membantu.</p>
                 <button className="text-[15px] font-bold text-gray-900 flex items-center gap-2 w-max hover:text-blue-700 transition-colors">
                   Buka Pusat Bantuan <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
                 </button>
@@ -1024,9 +927,7 @@ const PesananBerlangsung = ({ order, onReviewComplete }) => {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-green-900 mb-1">Terima kasih telah menggunakan layanan kami</h3>
-                <p className="text-sm text-green-800">
-                  Logistik Anda telah terkirim pada 05 Sep 2024 pukul 14:20 WIB dan diterima oleh <span className="font-bold">Bp.Haris (Gudang B)</span>
-                </p>
+                <p className="text-sm text-green-800">Logistik Anda telah terkirim pada 05 Sep 2024 pukul 14:20 WIB dan diterima oleh <span className="font-bold">Bp.Haris (Gudang B)</span></p>
               </div>
             </div>
 
@@ -1036,9 +937,7 @@ const PesananBerlangsung = ({ order, onReviewComplete }) => {
                   <p className="text-xs font-bold tracking-wider text-gray-400 mb-1">MANIFEST ID</p>
                   <h2 className="text-2xl font-bold text-gray-900">{order?.orderNumber || "MPL-DEMO"}</h2>
                 </div>
-                <div className="bg-green-50 text-green-600 px-4 py-2 rounded-full text-sm font-bold">
-                  Selesai & Terkirim
-                </div>
+                <div className="bg-green-50 text-green-600 px-4 py-2 rounded-full text-sm font-bold">Selesai & Terkirim</div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
@@ -1298,7 +1197,7 @@ const HistoryPesanan = ({ order }) => {
                 ))}
               </div>
               <p className="text-gray-700 text-sm leading-relaxed mb-4">{order.ulasan.komentar}</p>
-              
+
               {order.ulasan.balasan && (
                 <div className="bg-[#F8F9FB] rounded-xl p-4 mt-4 border-l-4 border-blue-500">
                   <div className="flex items-center gap-2 mb-2">
@@ -1316,56 +1215,48 @@ const HistoryPesanan = ({ order }) => {
   );
 };
 
-
 export default function App() {
-  const [orders, setOrders] = useState([]); // Menampung data pesanan dalam bentuk array
+  const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [activeMenu, setActiveMenu] = useState('loading');
 
-  // ── AMBIL DATA DARI API /order/view ──
-  useEffect(() => {
-    const fetchUserOrders = async () => {
-      setOrdersLoading(true);
-      try {
-        const token = localStorage.getItem('mpl_token');
-        if (!token) {
-          setActiveMenu('buat_pesanan');
-          return;
-        }
-
-        const response = await api.get('/order/view', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        // Ambil payload utama dari response.data.data
-        const resData = response.data?.data;
-
-        if (Array.isArray(resData)) {
-          setOrders(resData);
-        } else if (resData && typeof resData === 'object') {
-          // 🛠️ Antisipasi jika backend mengirim objek tunggal, bungkus ke dalam array agar bisa di-filter
-          setOrders([resData]);
-        } else {
-          setOrders([]);
-        }
-      } catch (err) {
-        console.error("Gagal memuat list order manifest:", err);
-        toast.error("Gagal mengambil data pesanan dari server");
-        setOrders([]);
-      } finally {
-        setOrdersLoading(false);
-        setActiveMenu('berlangsung');
+  const fetchUserOrders = async () => {
+    setOrdersLoading(true);
+    try {
+      const token = localStorage.getItem('mpl_token');
+      if (!token) {
+        setActiveMenu('buat_pesanan');
+        return;
       }
-    };
 
+      const response = await api.get('/order/view', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const resData = response.data?.data;
+
+      if (Array.isArray(resData)) {
+        setOrders(resData);
+      } else if (resData && typeof resData === 'object') {
+        setOrders([resData]);
+      } else {
+        setOrders([]);
+      }
+    } catch (err) {
+      console.error("Gagal memuat list order manifest:", err);
+      toast.error("Gagal mengambil data pesanan dari server");
+      setOrders([]);
+    } finally {
+      setOrdersLoading(false);
+      setActiveMenu('berlangsung');
+    }
+  };
+
+  useEffect(() => {
     fetchUserOrders();
   }, []);
-
-  const handleOrderComplete = () => {
-    window.location.reload();
-  };
 
   if (activeMenu === 'loading' || ordersLoading) {
     return (
@@ -1375,18 +1266,10 @@ export default function App() {
     );
   }
 
-  // ── 3 FILTER KATEGORI STATUS BERDASARKAN FIELD "status" DARI BACKEND ──
+  // Filter Kategori Tab Berlangsung (Kecuali yang DONE/SELESAI)
+  const activeManifestOrders = orders.filter(o => o?.status !== "DONE" && o?.status !== "SELESAI");
 
-  // 1. Kategori PENDING
-  const pendingOrders = orders.filter(o => o?.status === "PENDING" || o?.status === "WAITING");
-
-  // 2. Kategori ONGOING (ACCEPT / ON_PROCESS / Diproses)
-  const ongoingOrders = orders.filter(o => o?.status === "ACCEPT" || o?.status === "ONGOING" || o?.status === "Diproses");
-
-  // Gabungan Tab 'PESANAN BERLANGSUNG'
-  const activeManifestOrders = [...pendingOrders, ...ongoingOrders];
-
-  // 3. Kategori DONE
+  // Filter Kategori Tab History (Hanya yang DONE/SELESAI)
   const historyOrders = orders.filter(o => o?.status === "DONE" || o?.status === "SELESAI");
 
   return (
@@ -1399,13 +1282,12 @@ export default function App() {
       {activeMenu === 'buat_pesanan' ? (
         <main className="flex-1 w-full">
           <Pesanan
-            onComplete={handleOrderComplete}
+            onComplete={() => window.location.reload()}
             onBack={() => setActiveMenu('berlangsung')}
           />
         </main>
       ) : (
         <div className="flex flex-1 mx-auto w-full animate-in fade-in duration-700">
-
           {/* Sidebar Navigasi */}
           <aside className="w-80 bg-[#F9FAFB] border-r border-gray-200 hidden md:flex flex-col shrink-0 z-10 pt-4">
             <div className="p-8 pb-8">
@@ -1453,10 +1335,12 @@ export default function App() {
 
           {/* Panel Konten Dinamis */}
           <main className="flex-1 bg-[#F5F7F9]">
-<<<<<<< HEAD
             {activeMenu === 'berlangsung' && (
               <div className="p-8">
-                <PesananBerlangsungList orders={activeManifestOrders} />
+                <PesananBerlangsungList
+                  orders={activeManifestOrders}
+                  onReviewComplete={fetchUserOrders}
+                />
               </div>
             )}
             {activeMenu === 'history' && (
@@ -1464,12 +1348,7 @@ export default function App() {
                 <HistoryPesananList orders={historyOrders} />
               </div>
             )}
-=======
-            {activeMenu === 'berlangsung' && <div className="p-8"><PesananBerlangsungList orders={orders?.filter(o => o.status !== "DONE" && o.status !== "SELESAI")} onReviewComplete={() => { setActiveMenu('history'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} /></div>}
-            {activeMenu === 'history' && <div className="p-8"><HistoryPesananList orders={orders?.filter(o => o.status === "DONE" || o.status === "SELESAI")} /></div>}
->>>>>>> e62b542c87e39e7bfb8791004b25ef13f3f599ae
           </main>
-
         </div>
       )}
     </div>
