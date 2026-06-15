@@ -105,12 +105,20 @@ public class OrderService {
         if (!order.getStatus().equals("PENDING")) {
             throw new RuntimeException("Pesanan tidak meminta verifikasi");
         }
+        Order newOrder = order.toBuilder()
+                .id(null)
+                .ulasan(null)
+                .build();
         order.setStatus(status);
         order.setStatusPengiriman("Diproses");
         orderRepository.save(order);
         User user = order.getUser();
-        UserNotifikasi userNotifikasi = user.getUserNotifikasi();
-        userNotifikasi.setOrder(order);
+        UserNotifikasi userNotifikasi = UserNotifikasi.builder()
+                .id(null)
+                .sudahDibaca(false)
+                .order(newOrder)
+                .user(user)
+                .build();
         userNotifikasiRepository.save(userNotifikasi);
         return "Pesanan sudah diverifikasi";
     }
@@ -124,11 +132,23 @@ public class OrderService {
             throw new RuntimeException("Pesanan tidak sedang diproses");
         }
         order.setStatusPengiriman(statusPengiriman);
-        orderRepository.save(order);
+        orderRepository.save(order); // Simpan perubahan status order utama
+
+        // 3. AMBIL USER PEMILIK ORDER
         User user = order.getUser();
-        UserNotifikasi userNotifikasi = user.getUserNotifikasi();
+
+        // 4. BUAT NOTIFIKASI BARU (LANGSUNG IKAT KE ORDER ASLI)
+        UserNotifikasi userNotifikasi = new UserNotifikasi();
+        userNotifikasi.setId(null); // Set null agar digenerate otomatis oleh database
+        userNotifikasi.setSudahDibaca(false);
+
+        // 🌟 KUNCINYA: Jangan di-clone! Masukkan objek order asli hasil update tadi
         userNotifikasi.setOrder(order);
+        userNotifikasi.setUser(user);
+
+        // Simpan Notifikasi (Hanya akan menambah 1 baris di tabel usernotifikasi)
         userNotifikasiRepository.save(userNotifikasi);
+
         return "Pesanan sudah terupdate";
     }
 

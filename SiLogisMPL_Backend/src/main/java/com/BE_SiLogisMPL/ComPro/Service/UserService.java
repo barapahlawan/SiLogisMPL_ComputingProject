@@ -1,8 +1,8 @@
 package com.BE_SiLogisMPL.ComPro.Service;
 
 import java.io.IOException;
+import java.util.List;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +19,7 @@ import com.BE_SiLogisMPL.ComPro.Entity.UserProfile;
 import com.BE_SiLogisMPL.ComPro.Repository.AdminProfileRepository;
 import com.BE_SiLogisMPL.ComPro.Repository.CompanyProfileRepository;
 import com.BE_SiLogisMPL.ComPro.Repository.OrderRepository;
+import com.BE_SiLogisMPL.ComPro.Repository.UserNotifikasiRepository;
 import com.BE_SiLogisMPL.ComPro.Repository.UserProfileRepository;
 import com.BE_SiLogisMPL.ComPro.Repository.UserRepository;
 
@@ -38,13 +39,13 @@ public class UserService {
     private AdminProfileRepository adminProfileRepository;
 
     @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
     private CompanyProfileRepository companyProfileRepository;
 
     @Autowired
     private FileStorageService fileStorageService;
+
+    @Autowired
+    private UserNotifikasiRepository userNotifikasiRepository;
 
     public AdminDashboard viewDashboard() {
         if (orderRepository.findAll().isEmpty()) {
@@ -62,31 +63,40 @@ public class UserService {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
 
-        if (userRepository.existsByUsername(userProfileDTO.getUsername())) {
+        if (user.getUsername().equals(userProfileDTO.getUsername())) {
+            // Jika username yang diupdate sama dengan username saat ini, maka tidak perlu
+            // cek duplikasi
+        } else if (userRepository.existsByUsername(userProfileDTO.getUsername())) {
             throw new RuntimeException("Username sudah dipakai");
         }
 
-        if (userRepository.existsByEmail(userProfileDTO.getEmail())) {
+        if (user.getEmail().equals(userProfileDTO.getEmail())) {
+            // Jika email yang diupdate sama dengan email saat ini, maka tidak perlu cek
+            // duplikasi
+        } else if (userRepository.existsByEmail(userProfileDTO.getEmail())) {
             throw new RuntimeException("Email sudah dipakai");
         }
+        UserProfile userProfile;
+        if (user.getUserProfile() == null) {
+            userProfile = new UserProfile();
+            userProfile.setUser(user);
+        } else {
+            userProfile = user.getUserProfile();
+        }
 
-        UserProfile userProfileUpdate = user.getUserProfile().toBuilder()
-                .noTelepon(userProfileDTO.getNoTelepon())
-                .perusahaan(userProfileDTO.getPerusahaan())
-                .jabatan(userProfileDTO.getJabatan())
-                .npwpPerusahaan(userProfileDTO.getNpwpPerusahaan())
-                .industri(userProfileDTO.getIndustri())
-                .Alamat(userProfileDTO.getAlamat())
-                .build();
+        userProfile.setAlamat(userProfileDTO.getAlamat());
+        userProfile.setNoTelepon(userProfileDTO.getNoTelepon());
+        userProfile.setIndustri(userProfileDTO.getIndustri());
+        userProfile.setJabatan(userProfileDTO.getJabatan());
+        userProfile.setPerusahaan(userProfileDTO.getPerusahaan());
+        userProfile.setNpwpPerusahaan(userProfileDTO.getNpwpPerusahaan());
 
-        userProfileRepository.save(userProfileUpdate);
+        userProfileRepository.save(userProfile);
 
-        User userUpdate = user.toBuilder()
-                .username(userProfileDTO.getUsername())
-                .email(userProfileDTO.getEmail())
-                .build();
+        user.setUsername(userProfileDTO.getUsername());
+        user.setEmail(userProfileDTO.getEmail());
 
-        userRepository.save(userUpdate);
+        userRepository.save(user);
 
         return "Profil sudah diperbarui";
     }
@@ -236,7 +246,8 @@ public class UserService {
     public UserNotifikasi viewNotifikasi(String username) {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
-        return user.getUserNotifikasi();
+        List<UserNotifikasi> notifikasis = userNotifikasiRepository.findByUser(user);
+        return notifikasis.isEmpty() ? null : notifikasis.get(0);
     }
 
     public CompanyProfile viewUserCompanyProfile(String username) {
@@ -245,5 +256,18 @@ public class UserService {
         CompanyProfile companyProfile = companyProfileRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("Company Profile tidak ditemukan"));
         return companyProfile;
+    }
+
+    public String editProfilePictureUser(MultipartFile profilePicture, String username) {
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
+        try {
+            String urlImage = fileStorageService.uploadFile(profilePicture);
+            user.getUserProfile().setUrlProfilePicture(urlImage);
+            userProfileRepository.save(user.getUserProfile());
+            return "Profile picture sudah diperbarui";
+        } catch (IOException e) {
+            return e.getMessage();
+        }
     }
 }

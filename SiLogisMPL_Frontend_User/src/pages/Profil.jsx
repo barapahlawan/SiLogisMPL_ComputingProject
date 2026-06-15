@@ -1,43 +1,112 @@
-import { useState } from "react";
-import { useData } from "../contexts/DataContext";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { api } from "../lib/api"; // 🌟 Pastikan path helper axios/api kamu sudah benar
 import { Button } from "../components/ui/button";
-import { Pencil } from "lucide-react";
+import { Pencil, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Profil() {
-  const { profile, setProfile } = useData();
-  const { setUser } = useAuth();
-  const [form, setForm] = useState(profile);
-  const [loading, setLoading] = useState(false);
+  const { user, setUser } = useAuth();
+
+  // State lokal pengelolaan formulir data profil
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    role: ""
+  });
+
+  const [pageLoading, setPageLoading] = useState(true);
+  const [saveLoading, setSaveLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const set = (k, v) => setForm({ ...form, [k]: v });
 
+  const setFieldValue = (key, value) => setForm({ ...form, [key]: value });
+
+  // ── 1. AMBIL DATA PROFIL DARI BACKEND SAAT HALAMAN DIBUKA ──
+  useEffect(() => {
+    const fetchUserProfileData = async () => {
+      setPageLoading(true);
+      try {
+        const token = localStorage.getItem("mpl_token");
+        if (!token) return;
+
+        const response = await api.get("/user/profile", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const resData = response.data?.data || response.data;
+
+        if (resData) {
+          // Petakan data dari backend DTO ke state formulir React
+          setForm({
+            name: resData.username || resData.name || user?.name || "",
+            email: resData.email || "",
+            phone: resData.userProfile?.noTelepon || resData.phone || "",
+            role: resData.role || user?.role || ""
+          });
+        }
+      } catch (err) {
+        console.error("Gagal menjemput data profil dari database:", err);
+        toast.error("Gagal menyinkronkan data profil dari server");
+      } finally {
+        setPageLoading(false);
+      }
+    };
+
+    fetchUserProfileData();
+  }, [user]);
+
+  // ── 2. KIRIM PERUBAHAN DATA FORMULIR KE BACKEND ──
   const handleSave = async () => {
-    setLoading(true);
+    setSaveLoading(true);
+    try {
+      const token = localStorage.getItem("mpl_token");
 
-    // Simulasi async (ganti dengan API call kalau sudah ada backend)
-    await new Promise((r) => setTimeout(r, 500));
+      // Susun payload sesuai struktur entitas data User/UserProfile Spring Boot kamu
+      const payload = {
+        username: form.name,
+        email: form.email,
+        userProfile: {
+          noTelepon: form.phone,
+          jabatan: form.role
+        }
+      };
 
-    // 1. Update DataContext
-    setProfile(form);
+      await api.patch("/user/edit/profile", payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-    // 2. Sync ke AuthContext supaya sidebar otomatis update
-    setUser((prev) => ({
-      ...prev,
-      name: form.name,
-      role: form.role,
-    }));
+      // 3. Sinkronisasikan ke AuthContext global agar nama di Navbar otomatis berubah
+      setUser((prev) => ({
+        ...prev,
+        name: form.name,
+        role: form.role,
+      }));
 
-    setLoading(false);
-
-    // 3. Tampilkan modal sukses
-    setShowSuccess(true);
+      // Tampilkan modal pop-up sukses
+      setShowSuccess(true);
+      toast.success("Profil Anda berhasil diperbarui");
+    } catch (err) {
+      console.error("Gagal menyimpan update profil:", err);
+      toast.error(err.response?.data?.errors || "Gagal menyimpan perubahan ke database");
+    } finally {
+      setSaveLoading(false);
+    }
   };
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f0f0f0]">
+        <Loader2 className="w-8 h-8 animate-spin text-[#FFA000] mb-2" />
+        <p className="text-sm text-gray-500">Memuat berkas profil Anda...</p>
+      </div>
+    );
+  }
 
   return (
     <div
       data-testid="profil-page"
-      style={{ background: "#f0f0f0", minHeight: "100vh", position: "relative" }}
+      style={{ background: "#f0f0f0", minHeight: "100vh", position: "relative", paddingTop: "80px" }}
     >
       {/* ── MODAL SUKSES ── */}
       {showSuccess && (
@@ -67,12 +136,9 @@ export default function Profil() {
               boxShadow: "0 8px 40px rgba(0,0,0,0.18)",
             }}
           >
-            {/* Animated checkmark circle */}
             <div style={{ position: "relative", width: 100, height: 100 }}>
               <svg viewBox="0 0 100 100" width="100" height="100">
-                {/* Background circle */}
                 <circle cx="50" cy="50" r="46" fill="#f0fdf4" stroke="#22c55e" strokeWidth="3.5" />
-                {/* Checkmark */}
                 <polyline
                   points="28,52 44,68 72,36"
                   fill="none"
@@ -130,10 +196,9 @@ export default function Profil() {
         </div>
       )}
 
-      {/* ── HEADER ── */}
+      {/* ── HEADER KARTU PROFIL ── */}
       <div style={{ background: "#f0f0f0", padding: "40px 48px 28px" }}>
         <div style={{ display: "flex", alignItems: "flex-start", gap: "28px" }}>
-          {/* Avatar box */}
           <div style={{ position: "relative", flexShrink: 0 }}>
             <div
               style={{
@@ -176,19 +241,18 @@ export default function Profil() {
             </button>
           </div>
 
-          {/* Name + role */}
           <div style={{ paddingTop: 4 }}>
             <p
               style={{
                 fontSize: 11,
                 letterSpacing: "0.2em",
                 textTransform: "uppercase",
-                color: "#aaa",
+                color: "#999",
                 fontWeight: 600,
                 margin: "0 0 4px",
               }}
             >
-              System Administrator
+              Akun Anggota Mandiri Perkasa
             </p>
             <h1
               style={{
@@ -197,22 +261,20 @@ export default function Profil() {
                 color: "#1a1a1a",
                 margin: "0 0 6px",
                 lineHeight: 1.05,
-                fontFamily: "inherit",
               }}
             >
-              {form.name?.split(" ")[0] || "Zuhri"}
+              {form.name ? form.name.split(" ")[0] : "Pengguna"}
             </h1>
-            <p style={{ fontSize: 15, color: "#888", margin: 0 }}>
-              {form.role || "Head of Operations & Logistics Analytics"}
+            <p style={{ fontSize: 15, color: "#666", margin: 0, fontWeight: 500 }}>
+              {form.role || "Mitra Pengiriman MPL"}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Divider */}
-      <div style={{ height: 1, background: "#ddd" }} />
+      <div style={{ height: 1, background: "#ddd", margin: "0 48px" }} />
 
-      {/* ── INFORMASI PROFIL ── */}
+      {/* ── ISIAN DATA FORMULIR INPUT ── */}
       <div style={{ padding: "36px 48px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28 }}>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -220,7 +282,7 @@ export default function Profil() {
             <path d="M2 17c0-4 3.582-6 8-6s8 2 8 6" stroke="#FFA000" strokeWidth="1.8" strokeLinecap="round" fill="none" />
           </svg>
           <span style={{ fontSize: 17, fontWeight: 800, color: "#1a1a1a" }}>
-            Informasi Profil
+            Informasi Profil Utama
           </span>
         </div>
 
@@ -232,26 +294,28 @@ export default function Profil() {
             rowGap: 0,
           }}
         >
-          <ProfileField label="Nama Lengkap" testId="profile-name" value={form.name} onChange={(v) => set("name", v)} />
-          <ProfileField label="Alamat Email" testId="profile-email" value={form.email} onChange={(v) => set("email", v)} />
-          <ProfileField label="Nomor Telepon" testId="profile-phone" value={form.phone} onChange={(v) => set("phone", v)} />
-          <ProfileField label="Jabatan / Role" testId="profile-role" value={form.role} onChange={(v) => set("role", v)} />
+          <ProfileField label="Nama Lengkap" testId="profile-name" value={form.name} onChange={(v) => setFieldValue("name", v)} />
+          <ProfileField label="Alamat Email" testId="profile-email" value={form.email} onChange={(v) => setFieldValue("email", v)} />
+          <ProfileField label="Nomor Telepon" testId="profile-phone" value={form.phone} onChange={(v) => setFieldValue("phone", v)} />
+          <ProfileField label="Jabatan / Bidang Kerja" testId="profile-role" value={form.role} onChange={(v) => setFieldValue("role", v)} />
         </div>
 
-        <div className="mt-6 flex justify-end">
+        <div style={{ marginTop: "24px", display: "flex", justifyContent: "flex-end" }}>
           <Button
             onClick={handleSave}
-            disabled={loading}
+            disabled={saveLoading}
             data-testid="save-profile-btn"
             style={{
               background: "#FFA000",
               color: "#fff",
               border: "none",
               borderRadius: 8,
+              cursor: saveLoading ? "not-allowed" : "pointer"
             }}
-            className="h-11 px-8 text-sm font-semibold"
+            className="h-11 px-8 text-sm font-semibold flex items-center gap-2"
           >
-            {loading ? "Menyimpan..." : "Simpan Perubahan"}
+            {saveLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+            {saveLoading ? "Menyimpan..." : "Simpan Perubahan"}
           </Button>
         </div>
       </div>

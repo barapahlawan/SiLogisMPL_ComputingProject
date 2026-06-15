@@ -2,6 +2,8 @@ package com.BE_SiLogisMPL.ComPro.Entity;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -40,5 +42,6 @@ public class Ulasan {
     private User user;
     @OneToOne
     @MapsId
+    @JsonIgnore
     private Order order;
 }

@@ -19,7 +19,7 @@ export const DataProvider = ({ children }) => {
     setOrdersLoading(true);
     try {
       // Endpoint ini akan mengambil semua pesanan dari backend (termasuk yang diverifikasi)
-      const res = await api.get("/order/user");
+      const res = await api.get("/order/view");
       const data = res.data?.data || res.data;
       setOrders(Array.isArray(data) ? data : []);
     } catch (err) {

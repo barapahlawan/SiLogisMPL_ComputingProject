@@ -265,4 +265,19 @@ public class UserController {
                                 .data(token)
                                 .build();
         }
+
+        @PostMapping(value = "/edit/profilepicture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @PreAuthorize("hasRole('USER')")
+        public WebResponse<String> editProfilePictureUser(@RequestParam("file") MultipartFile profilePicture,
+                        Authentication authentication) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                String token = userService.editProfilePictureUser(profilePicture, username);
+                return WebResponse.<String>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
 }
