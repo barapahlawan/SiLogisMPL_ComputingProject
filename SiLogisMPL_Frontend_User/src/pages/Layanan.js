@@ -179,12 +179,12 @@ const Layanan = () => {
                   Area Jangkauan
                 </p>
                 <p className="text-[28px] md:text-[32px] font-bold text-[#1A1A1A] leading-tight">
-                  Nasional
+                  Luar & Dalam
                 </p>
               </div>
               <div className="text-left sm:text-right">
                 <p className="text-[#F5BC00] text-[32px] md:text-[40px] font-bold leading-none">
-                  34 Prov
+                  Provinsi
                 </p>
               </div>
             </div>

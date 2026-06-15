@@ -9,8 +9,8 @@ export const DataProvider = ({ children }) => {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [company, setCompany] = useState(MOCK_COMPANY);
   const [companyLoading, setCompanyLoading] = useState(false);
-  const [profile, setProfile] = useState(MOCK_PROFILE);
-  const [chatbot, setChatbot] = useState(MOCK_CHATBOT);
+  const [profile, setProfile] = useState({});
+  const [chatbot, setChatbot] = useState({});
 
   // ─── FETCH ORDERS USER dari backend ─────────────────────────────────────────
   const fetchUserOrders = useCallback(async () => {
@@ -80,10 +80,13 @@ export const DataProvider = ({ children }) => {
     fetchCompany();
   }, [fetchCompany]);
 
-  // Fetch pesanan user saat pertama load jika sudah login
+  // Fetch pesanan user saat pertama load jika sudah login dan auto-refresh tiap 15 detik
   useEffect(() => {
     const token = localStorage.getItem("mpl_token");
-    if (token) fetchUserOrders();
+    if (!token) return;
+    fetchUserOrders();
+    const interval = setInterval(fetchUserOrders, 15000);
+    return () => clearInterval(interval);
   }, [fetchUserOrders]);
 
   const updateOrder = (id, patch) =>
@@ -92,8 +95,8 @@ export const DataProvider = ({ children }) => {
   const resetData = () => {
     setOrders([]);
     setCompany(MOCK_COMPANY);
-    setProfile(MOCK_PROFILE);
-    setChatbot(MOCK_CHATBOT);
+    setProfile({});
+    setChatbot({});
   };
 
   return (

@@ -731,7 +731,7 @@ const ProgressBar = ({ currentStep }) => {
   );
 };
 
-const PesananBerlangsungList = ({ orders }) => {
+const PesananBerlangsungList = ({ orders, onReviewComplete }) => {
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   if (!orders || orders.length === 0) {
@@ -753,7 +753,13 @@ const PesananBerlangsungList = ({ orders }) => {
         >
           <ArrowRight className="w-4 h-4 rotate-180" /> Kembali ke Daftar Pesanan
         </button>
-        <PesananBerlangsung order={selectedOrder} />
+        <PesananBerlangsung 
+          order={selectedOrder} 
+          onReviewComplete={() => {
+            setSelectedOrder(null);
+            if (onReviewComplete) onReviewComplete();
+          }} 
+        />
       </div>
     );
   }
@@ -771,7 +777,11 @@ const PesananBerlangsungList = ({ orders }) => {
               <div className="flex gap-4 items-center mb-4">
                 <span className="font-bold text-gray-900 bg-gray-100 px-3 py-1 rounded text-sm">#{order?.orderNumber || "MPL-DEMO"}</span>
                 <span className="text-[11px] font-bold tracking-wider uppercase text-[#F5BC00] bg-[#F5BC00]/10 px-2 py-1 rounded">
+<<<<<<< HEAD
                   {order?.status === 'PENDING' ? 'VERIFIKASI' : order?.status === 'ONGOING' || order?.status === 'Diproses' ? 'PENGANTARAN' : order?.status}
+=======
+                  {order?.status === 'PENDING' ? 'VERIFIKASI' : order?.status === 'ONGOING' || order?.status === 'ACCEPT' || order?.status === 'Diproses' ? 'PENGANTARAN' : order?.status === 'COMPLETED' ? 'SELESAI' : order?.status}
+>>>>>>> e62b542c87e39e7bfb8791004b25ef13f3f599ae
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -806,15 +816,40 @@ const PesananBerlangsungList = ({ orders }) => {
   );
 };
 
-const PesananBerlangsung = ({ order }) => {
+const PesananBerlangsung = ({ order, onReviewComplete }) => {
   let statusStep = 1;
   if (order?.status === 'PENDING') statusStep = 1;
+<<<<<<< HEAD
   else if (order?.status === 'ONGOING' || order?.status === 'Diproses') statusStep = 2;
+=======
+  else if (order?.status === 'ONGOING' || order?.status === 'ACCEPT' || order?.status === 'Diproses') statusStep = 2;
+>>>>>>> e62b542c87e39e7bfb8791004b25ef13f3f599ae
   else statusStep = 3;
 
   const [showReviewSuccess, setShowReviewSuccess] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { fetchUserOrders } = useData();
+
+  const handleSubmitReview = async () => {
+    if (!rating) {
+      toast.error("Silakan berikan rating terlebih dahulu");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await api.post(`/user/create/ulasan/${order.id}`, { rating, komentar: reviewText });
+      setShowReviewSuccess(true);
+      fetchUserOrders();
+    } catch (error) {
+      console.error(error);
+      toast.error("Gagal mengirim ulasan");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="animate-in fade-in duration-500 relative">
@@ -914,6 +949,12 @@ const PesananBerlangsung = ({ order }) => {
                 <div>
                   <p className="text-xs font-bold tracking-wider text-gray-400 mb-1">MANIFEST ID</p>
                   <p className="font-bold text-gray-900">{order?.orderNumber || "MPL-DEMO"}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold tracking-wider text-gray-400 mb-1">STATUS PENGIRIMAN</p>
+                  <div className="inline-block bg-[#F5BC00]/10 text-[#F5BC00] border border-[#F5BC00]/20 px-3 py-1 rounded text-sm font-bold">
+                    {order?.statusPengiriman || "Diproses"}
+                  </div>
                 </div>
                 <div>
                   <p className="text-xs font-bold tracking-wider text-gray-400 mb-1">TITIK AWAL</p>
@@ -1033,14 +1074,17 @@ const PesananBerlangsung = ({ order }) => {
                   ))}
                 </div>
                 <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
                   placeholder="Tuliskan feedback Anda untuk membantu kami meningkatkan layanan..."
                   className="w-full h-24 bg-gray-50 border border-gray-200 rounded-lg p-4 resize-none focus:outline-none focus:ring-2 focus:ring-[#F5BC00] mb-4"
                 ></textarea>
                 <button
-                  onClick={() => setShowReviewSuccess(true)}
-                  className="w-full bg-[#F5BC00] hover:bg-[#F5BC00]/90 text-white font-bold py-3 px-4 rounded-xl transition-colors"
+                  onClick={handleSubmitReview}
+                  disabled={isSubmitting}
+                  className="w-full bg-[#F5BC00] hover:bg-[#F5BC00]/90 disabled:opacity-50 text-white font-bold py-3 px-4 rounded-xl transition-colors"
                 >
-                  Kirim Ulasan
+                  {isSubmitting ? "Mengirim..." : "Kirim Ulasan"}
                 </button>
               </div>
             </div>
@@ -1054,7 +1098,10 @@ const PesananBerlangsung = ({ order }) => {
                   <h2 className="text-2xl font-bold text-gray-900 mb-3">Ulasan Berhasil di Buat</h2>
                   <p className="text-gray-500 mb-8">Terima kasih atas ulasan anda</p>
                   <button
-                    onClick={() => setShowReviewSuccess(false)}
+                    onClick={() => {
+                      setShowReviewSuccess(false);
+                      if (onReviewComplete) onReviewComplete();
+                    }}
                     className="text-gray-400 hover:text-gray-600 text-sm font-semibold"
                   >
                     Tutup
@@ -1152,7 +1199,13 @@ const HistoryPesanan = ({ order }) => {
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Detail Pesanan Saya</h1>
           <p className="text-xs font-bold text-gray-400 tracking-wider mt-2">HISTORY PESANAN &gt; Order #{order?.orderNumber || "MPL-DEMO"}</p>
         </div>
-        <button onClick={() => alert("Mengunduh Invoice...")} className="flex items-center justify-center gap-2 bg-white border-2 border-gray-200 hover:border-[#F5BC00] hover:text-[#F5BC00] text-gray-700 font-bold py-2.5 px-5 rounded-xl transition-colors shrink-0">
+        <button onClick={() => {
+          if (order?.urlInvoice) {
+            window.open(order.urlInvoice, '_blank');
+          } else {
+            toast.error("Invoice belum diterbitkan untuk pesanan ini.");
+          }
+        }} className="flex items-center justify-center gap-2 bg-white border-2 border-gray-200 hover:border-[#F5BC00] hover:text-[#F5BC00] text-gray-700 font-bold py-2.5 px-5 rounded-xl transition-colors shrink-0">
           <Download className="w-4 h-4" /> Download Invoice
         </button>
       </div>
@@ -1234,6 +1287,30 @@ const HistoryPesanan = ({ order }) => {
             </div>
           </div>
         </div>
+
+        {order?.ulasan && (
+          <div className="mt-8 pt-8 border-t border-gray-100">
+            <h3 className="text-xs font-bold text-gray-400 tracking-widest mb-4 uppercase">Ulasan Anda</h3>
+            <div className="bg-[#FAFAFA] border border-gray-100 rounded-xl p-6 relative">
+              <div className="flex gap-1 mb-3">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <Star key={star} className={`w-5 h-5 ${star <= order.ulasan.rating ? 'text-[#FFA000] fill-[#FFA000]' : 'text-gray-300'}`} />
+                ))}
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed mb-4">{order.ulasan.komentar}</p>
+              
+              {order.ulasan.balasan && (
+                <div className="bg-[#F8F9FB] rounded-xl p-4 mt-4 border-l-4 border-blue-500">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageSquare className="w-4 h-4 text-blue-500" />
+                    <span className="font-bold text-gray-900 text-sm">Balasan Admin SiLogis</span>
+                  </div>
+                  <p className="text-sm text-gray-600">{order.ulasan.balasan}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1376,6 +1453,7 @@ export default function App() {
 
           {/* Panel Konten Dinamis */}
           <main className="flex-1 bg-[#F5F7F9]">
+<<<<<<< HEAD
             {activeMenu === 'berlangsung' && (
               <div className="p-8">
                 <PesananBerlangsungList orders={activeManifestOrders} />
@@ -1386,6 +1464,10 @@ export default function App() {
                 <HistoryPesananList orders={historyOrders} />
               </div>
             )}
+=======
+            {activeMenu === 'berlangsung' && <div className="p-8"><PesananBerlangsungList orders={orders?.filter(o => o.status !== "DONE" && o.status !== "SELESAI")} onReviewComplete={() => { setActiveMenu('history'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} /></div>}
+            {activeMenu === 'history' && <div className="p-8"><HistoryPesananList orders={orders?.filter(o => o.status === "DONE" || o.status === "SELESAI")} /></div>}
+>>>>>>> e62b542c87e39e7bfb8791004b25ef13f3f599ae
           </main>
 
         </div>
