@@ -89,9 +89,9 @@ const Pesanan = ({ onComplete, onBack }) => {
   };
 
   const renderStep1 = () => (
-    <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 p-8">
       {onBack && (
-        <button 
+        <button
           onClick={onBack}
           className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors mb-6"
         >
@@ -106,7 +106,7 @@ const Pesanan = ({ onComplete, onBack }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-[#F5BC00]">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-[#F5BC00]">
           <label className="block text-xs font-bold text-yellow-500 mb-4 tracking-wider">
             JENIS PAKET
           </label>
@@ -128,14 +128,14 @@ const Pesanan = ({ onComplete, onBack }) => {
             <input
               name="beratEstimasi"
               type="number"
-              step="0.1" // Supaya bisa desimal (misal 12.5)
+              step="0.1"
               min="0"
               placeholder="0.00"
               value={formData.beratEstimasi}
-              onChange={handleInputChange} // Menggunakan fungsi handleInputChange bawaanmu
+              onChange={handleInputChange}
               className="text-5xl font-bold text-gray-900 bg-transparent border-b-2 border-transparent focus:border-b-gray-400 w-44 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
-            <span className="text-xl font-bold text-gray-400 mb-1">KG</span>
+            <span className="textxl font-bold text-gray-400 mb-1">KG</span>
           </div>
           <div className="w-12 h-1 bg-[#F5BC00] mt-2"></div>
         </div>
@@ -189,7 +189,7 @@ const Pesanan = ({ onComplete, onBack }) => {
 
       <div className="flex items-center justify-between border-t border-gray-200 pt-8">
         <button
-          onClick={() => navigate('/layanan')}
+          onClick={onBack}
           className="flex items-center gap-2 text-sm font-bold text-gray-700 hover:text-gray-900"
         >
           <X className="w-4 h-4" /> BATALKAN PESANAN
@@ -205,7 +205,7 @@ const Pesanan = ({ onComplete, onBack }) => {
   );
 
   const renderStep2 = () => (
-    <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-right-8 duration-500">
+    <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-right-8 duration-500 p-8">
       <div className="mb-10">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">Informasi Pengiriman</h1>
         <p className="text-gray-500">
@@ -215,7 +215,6 @@ const Pesanan = ({ onComplete, onBack }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-10">
-          {/* Alamat Asal */}
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-1.5 h-6 bg-[#F5BC00] rounded-full"></div>
@@ -283,7 +282,6 @@ const Pesanan = ({ onComplete, onBack }) => {
             </div>
           </div>
 
-          {/* Alamat Tujuan */}
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-1.5 h-6 bg-gray-900 rounded-full"></div>
@@ -352,7 +350,6 @@ const Pesanan = ({ onComplete, onBack }) => {
           </div>
         </div>
 
-        {/* Sidebar Actions */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-[#FEF9C3] p-6 rounded-2xl border border-yellow-100">
             <div className="flex gap-3">
@@ -399,7 +396,7 @@ const Pesanan = ({ onComplete, onBack }) => {
         name: 'Truck',
         badge: 'MENENGAH',
         badgeColor: 'bg-yellow-100 text-yellow-700',
-        capacity: '{order?.kapasitas} Kg',
+        capacity: '4.000 Kg',
         img: '/images/isuzu-truck.jpg',
       },
       {
@@ -417,7 +414,7 @@ const Pesanan = ({ onComplete, onBack }) => {
     };
 
     return (
-      <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-right-8 duration-500">
+      <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-right-8 duration-500 p-8">
         <div className="mb-10">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Pilih Armada Pengiriman</h1>
           <p className="text-gray-500">
@@ -425,7 +422,6 @@ const Pesanan = ({ onComplete, onBack }) => {
           </p>
         </div>
 
-        {/* Pilihan Kendaraan */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {armadas.map((armada) => {
             const isSelected = formData.kendaraan === armada.id;
@@ -455,8 +451,9 @@ const Pesanan = ({ onComplete, onBack }) => {
                 </div>
 
                 <button
+                  type="button"
                   className={`w-full py-3 px-4 rounded-xl font-bold transition-all ${isSelected
-                    ? 'bg-[#F5BC00] hover:bg-[#F5BC00]/90 text-white shadow-md'
+                    ? 'bg-[#F5BC00] text-white shadow-md'
                     : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
                     }`}
                 >
@@ -467,7 +464,6 @@ const Pesanan = ({ onComplete, onBack }) => {
           })}
         </div>
 
-        {/* Action Bar Bawah */}
         <div className="bg-white rounded-2xl shadow-sm border-t-4 border-[#F5BC00] p-6 mb-16 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
             <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1">
@@ -492,7 +488,6 @@ const Pesanan = ({ onComplete, onBack }) => {
           </div>
         </div>
 
-        {/* Info & Call to Action Bawah */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>
             <h3 className="text-2xl font-bold text-gray-900 mb-3">Informasi Standar Operasional</h3>
@@ -525,7 +520,6 @@ const Pesanan = ({ onComplete, onBack }) => {
                 HUBUNGI SALES
               </button>
             </div>
-            {/* Ornamen Kotak di ujung kanan bawah sesuai desain */}
             <div className="absolute -bottom-8 -right-8 w-32 h-32 border-8 border-gray-200 rounded-2xl opacity-50"></div>
           </div>
         </div>
@@ -534,9 +528,8 @@ const Pesanan = ({ onComplete, onBack }) => {
   };
 
   const renderStep4 = () => (
-    <div className="max-w-5xl mx-auto animate-in fade-in zoom-in-95 duration-500">
+    <div className="max-w-5xl mx-auto animate-in fade-in zoom-in-95 duration-500 p-8">
       <div className="mb-8">
-
         <h1 className="text-4xl font-bold text-gray-900 mb-2">Ringkasan Pengiriman</h1>
         <p className="text-gray-500">
           Mohon periksa kembali seluruh informasi di bawah ini sebelum mengonfirmasi pesanan logistik Anda. Pastikan detail armada dan rute sudah sesuai.
@@ -545,7 +538,7 @@ const Pesanan = ({ onComplete, onBack }) => {
 
       <div className="bg-white rounded-3xl p-8 shadow-sm border-l-4 border-[#F5BC00] mb-6 relative">
         <div className="absolute top-8 right-8 bg-[#F5BC00] text-white text-xs font-bold px-3 py-1.5 rounded uppercase">
-          Manifest ID: #{order?.orderNumber || "LOG-DEMO"}
+          Manifest ID: #{formData.orderNumber || "LOG-DEMO"}
         </div>
 
         <h3 className="text-xs font-bold text-gray-400 tracking-widest mb-6">INFORMASI PELANGGAN</h3>
@@ -608,7 +601,6 @@ const Pesanan = ({ onComplete, onBack }) => {
         <div className="bg-white rounded-3xl p-8 shadow-sm">
           <h3 className="text-[14px] font-bold text-gray-600 tracking-widest mb-8 uppercase">RUTE PENGIRIMAN</h3>
           <div className="relative pl-10">
-            {/* Timeline Line */}
             <div className="absolute left-[11px] top-6 bottom-10 w-[2px] border-l-[2px] border-dashed border-gray-300"></div>
 
             <div className="mb-10 relative">
@@ -668,13 +660,12 @@ const Pesanan = ({ onComplete, onBack }) => {
   );
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-[#F5F7F9] py-10 px-4 sm:px-6 lg:px-8 w-full">
+    <div className="min-h-[calc(100vh-64px)] bg-[#F5F7F9] py-0 w-full">
       {step === 1 && renderStep1()}
       {step === 2 && renderStep2()}
       {step === 3 && renderStep3()}
       {step === 4 && renderStep4()}
 
-      {/* Success Modal Overlay */}
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white rounded-3xl p-12 max-w-md w-full mx-4 text-center shadow-2xl animate-in zoom-in-95 duration-300">
@@ -705,10 +696,6 @@ const Pesanan = ({ onComplete, onBack }) => {
     </div>
   );
 };
-
-// ============================================================================
-// KOMPONEN TAMBAHAN (LAYOUT, STATUS PESANAN, & HISTORY)
-// ============================================================================
 
 const ProgressBar = ({ currentStep }) => {
   return (
@@ -760,8 +747,8 @@ const PesananBerlangsungList = ({ orders }) => {
   if (selectedOrder) {
     return (
       <div className="animate-in fade-in slide-in-from-right-8 duration-300">
-        <button 
-          onClick={() => setSelectedOrder(null)} 
+        <button
+          onClick={() => setSelectedOrder(null)}
           className="text-sm font-bold text-gray-500 hover:text-gray-900 flex items-center gap-2 mb-6 transition-colors"
         >
           <ArrowRight className="w-4 h-4 rotate-180" /> Kembali ke Daftar Pesanan
@@ -784,7 +771,7 @@ const PesananBerlangsungList = ({ orders }) => {
               <div className="flex gap-4 items-center mb-4">
                 <span className="font-bold text-gray-900 bg-gray-100 px-3 py-1 rounded text-sm">#{order?.orderNumber || "MPL-DEMO"}</span>
                 <span className="text-[11px] font-bold tracking-wider uppercase text-[#F5BC00] bg-[#F5BC00]/10 px-2 py-1 rounded">
-                  {order?.status === 'PENDING' ? 'VERIFIKASI' : order?.status === 'ACCEPT' || order?.status === 'Diproses' ? 'PENGANTARAN' : order?.status}
+                  {order?.status === 'PENDING' ? 'VERIFIKASI' : order?.status === 'ONGOING' || order?.status === 'Diproses' ? 'PENGANTARAN' : order?.status}
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -806,7 +793,7 @@ const PesananBerlangsungList = ({ orders }) => {
                 </div>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => setSelectedOrder(order)}
               className="w-full md:w-auto px-6 py-3 bg-[#F5BC00] hover:bg-[#E5A900] text-white font-bold rounded-xl transition-colors whitespace-nowrap flex items-center justify-center gap-2"
             >
@@ -822,7 +809,7 @@ const PesananBerlangsungList = ({ orders }) => {
 const PesananBerlangsung = ({ order }) => {
   let statusStep = 1;
   if (order?.status === 'PENDING') statusStep = 1;
-  else if (order?.status === 'ACCEPT' || order?.status === 'Diproses') statusStep = 2;
+  else if (order?.status === 'ONGOING' || order?.status === 'Diproses') statusStep = 2;
   else statusStep = 3;
 
   const [showReviewSuccess, setShowReviewSuccess] = useState(false);
@@ -831,12 +818,9 @@ const PesananBerlangsung = ({ order }) => {
 
   return (
     <div className="animate-in fade-in duration-500 relative">
-      
-
       <ProgressBar currentStep={statusStep} />
 
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Step 1: Verifikasi */}
         {statusStep === 1 && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -919,7 +903,6 @@ const PesananBerlangsung = ({ order }) => {
           </div>
         )}
 
-        {/* Step 2: Pengantaran */}
         {statusStep === 2 && (
           <>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#F5BC00]/30">
@@ -992,7 +975,6 @@ const PesananBerlangsung = ({ order }) => {
           </>
         )}
 
-        {/* Step 3: Selesai */}
         {statusStep === 3 && (
           <>
             <div className="bg-green-100 p-6 rounded-2xl flex items-start gap-4">
@@ -1042,8 +1024,8 @@ const PesananBerlangsung = ({ order }) => {
                 <p className="text-center font-bold text-gray-900 mb-4">Bagaimana pengalaman pengiriman Anda?</p>
                 <div className="flex justify-center gap-2 mb-6" onMouseLeave={() => setHoverRating(0)}>
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star 
-                      key={star} 
+                    <Star
+                      key={star}
                       className={`w-8 h-8 cursor-pointer transition-transform hover:scale-110 ${star <= (hoverRating || rating) ? 'text-[#F5BC00] fill-[#F5BC00]' : 'text-gray-300'}`}
                       onMouseEnter={() => setHoverRating(star)}
                       onClick={() => setRating(star)}
@@ -1103,8 +1085,8 @@ const HistoryPesananList = ({ orders }) => {
   if (selectedOrder) {
     return (
       <div className="animate-in fade-in slide-in-from-right-8 duration-300">
-        <button 
-          onClick={() => setSelectedOrder(null)} 
+        <button
+          onClick={() => setSelectedOrder(null)}
           className="text-sm font-bold text-gray-500 hover:text-gray-900 flex items-center gap-2 mb-6 transition-colors"
         >
           <ArrowRight className="w-4 h-4 rotate-180" /> Kembali ke Daftar Riwayat
@@ -1149,7 +1131,7 @@ const HistoryPesananList = ({ orders }) => {
                 </div>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => setSelectedOrder(order)}
               className="w-full md:w-auto px-6 py-3 border-2 border-gray-200 text-gray-700 hover:border-[#F5BC00] hover:text-[#F5BC00] font-bold rounded-xl transition-colors whitespace-nowrap flex items-center justify-center gap-2"
             >
@@ -1227,7 +1209,7 @@ const HistoryPesanan = ({ order }) => {
           <div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">{order?.jenisKendaraan}</h3>
             <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
-              <Package className="w-4 h-4 text-[#F5BC00]" /> Kapasitas: <span className="font-bold text-gray-900">{order?.kapasitas} Kg</span>
+              <span className="w-3 h-3 bg-[#F5BC00] inline-block rounded-sm"></span> Kapasitas: <span className="font-bold text-gray-900">{order?.kapasitas} Kg</span>
             </p>
           </div>
         </div>
@@ -1258,38 +1240,77 @@ const HistoryPesanan = ({ order }) => {
 };
 
 
-
-// ============================================================================
-// MAIN APP COMPONENT
-// ============================================================================
-
 export default function App() {
-  const { orders, ordersLoading } = useData();
-  const [activeMenu, setActiveMenu] = useState('loading'); // 'loading', 'buat_pesanan', 'berlangsung', 'history'
+  const [orders, setOrders] = useState([]); // Menampung data pesanan dalam bentuk array
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [activeMenu, setActiveMenu] = useState('loading');
 
-  // Set default state based on whether they have orders
+  // ── AMBIL DATA DARI API /order/view ──
   useEffect(() => {
-    if (!ordersLoading) {
-      if (orders && orders.length > 0) {
+    const fetchUserOrders = async () => {
+      setOrdersLoading(true);
+      try {
+        const token = localStorage.getItem('mpl_token');
+        if (!token) {
+          setActiveMenu('buat_pesanan');
+          return;
+        }
+
+        const response = await api.get('/order/view', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        // Ambil payload utama dari response.data.data
+        const resData = response.data?.data;
+
+        if (Array.isArray(resData)) {
+          setOrders(resData);
+        } else if (resData && typeof resData === 'object') {
+          // 🛠️ Antisipasi jika backend mengirim objek tunggal, bungkus ke dalam array agar bisa di-filter
+          setOrders([resData]);
+        } else {
+          setOrders([]);
+        }
+      } catch (err) {
+        console.error("Gagal memuat list order manifest:", err);
+        toast.error("Gagal mengambil data pesanan dari server");
+        setOrders([]);
+      } finally {
+        setOrdersLoading(false);
         setActiveMenu('berlangsung');
-      } else {
-        setActiveMenu('buat_pesanan');
       }
-    }
-  }, [ordersLoading]); 
+    };
+
+    fetchUserOrders();
+  }, []);
 
   const handleOrderComplete = () => {
-    setActiveMenu('berlangsung');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.location.reload();
   };
 
-  if (activeMenu === 'loading') {
+  if (activeMenu === 'loading' || ordersLoading) {
     return (
       <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-[#F9FAFB]">
         <div className="w-8 h-8 border-4 border-[#F5BC00] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
+
+  // ── 3 FILTER KATEGORI STATUS BERDASARKAN FIELD "status" DARI BACKEND ──
+
+  // 1. Kategori PENDING
+  const pendingOrders = orders.filter(o => o?.status === "PENDING" || o?.status === "WAITING");
+
+  // 2. Kategori ONGOING (ACCEPT / ON_PROCESS / Diproses)
+  const ongoingOrders = orders.filter(o => o?.status === "ACCEPT" || o?.status === "ONGOING" || o?.status === "Diproses");
+
+  // Gabungan Tab 'PESANAN BERLANGSUNG'
+  const activeManifestOrders = [...pendingOrders, ...ongoingOrders];
+
+  // 3. Kategori DONE
+  const historyOrders = orders.filter(o => o?.status === "DONE" || o?.status === "SELESAI");
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[#F5F7F9] flex flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -1300,15 +1321,15 @@ export default function App() {
 
       {activeMenu === 'buat_pesanan' ? (
         <main className="flex-1 w-full">
-          <Pesanan 
-            onComplete={handleOrderComplete} 
-            onBack={(orders && orders.length > 0) ? () => setActiveMenu('berlangsung') : null} 
+          <Pesanan
+            onComplete={handleOrderComplete}
+            onBack={() => setActiveMenu('berlangsung')}
           />
         </main>
       ) : (
         <div className="flex flex-1 mx-auto w-full animate-in fade-in duration-700">
 
-          {/* Sidebar Menu Utama */}
+          {/* Sidebar Navigasi */}
           <aside className="w-80 bg-[#F9FAFB] border-r border-gray-200 hidden md:flex flex-col shrink-0 z-10 pt-4">
             <div className="p-8 pb-8">
               <h2 className="text-[28px] leading-tight font-bold text-gray-900 mb-2 font-['Manrope',_sans-serif]">Order Manifest</h2>
@@ -1326,7 +1347,7 @@ export default function App() {
                   : 'text-gray-400 hover:text-gray-600 border-l-[8px] border-transparent'
                   }`}
               >
-                <Archive className="w-7 h-7" strokeWidth={2} /> PESANAN BERLANGSUNG
+                <Archive className="w-7 h-7" strokeWidth={2} /> PESANAN BERLANGSUNG ({activeManifestOrders.length})
               </button>
 
               <button
@@ -1339,25 +1360,34 @@ export default function App() {
                   : 'text-gray-400 hover:text-gray-600 border-l-[8px] border-transparent'
                   }`}
               >
-                <ClipboardList className="w-7 h-7" strokeWidth={2} /> HISTORY PESANAN
+                <ClipboardList className="w-7 h-7" strokeWidth={2} /> HISTORY PESANAN ({historyOrders.length})
               </button>
-              
+
               <div className="mt-8 px-8">
-                 <button
-                   onClick={() => setActiveMenu('buat_pesanan')}
-                   className="w-full flex items-center justify-center gap-2 bg-[#F5BC00] hover:bg-[#E5A900] text-white font-bold py-3 rounded-xl transition-colors shadow-md"
-                 >
-                   <PlusCircle className="w-5 h-5" /> BUAT PESANAN BARU
-                 </button>
+                <button
+                  onClick={() => setActiveMenu('buat_pesanan')}
+                  className="w-full flex items-center justify-center gap-2 bg-[#F5BC00] hover:bg-[#E5A900] text-white font-bold py-3 rounded-xl transition-colors shadow-md"
+                >
+                  <PlusCircle className="w-5 h-5" /> BUAT PESANAN BARU
+                </button>
               </div>
             </nav>
           </aside>
 
-          {/* Dynamic Content Panel */}
+          {/* Panel Konten Dinamis */}
           <main className="flex-1 bg-[#F5F7F9]">
-            {activeMenu === 'berlangsung' && <div className="p-8"><PesananBerlangsungList orders={orders?.filter(o => o.status !== "DONE" && o.status !== "SELESAI")} /></div>}
-            {activeMenu === 'history' && <div className="p-8"><HistoryPesananList orders={orders?.filter(o => o.status === "DONE" || o.status === "SELESAI")} /></div>}
+            {activeMenu === 'berlangsung' && (
+              <div className="p-8">
+                <PesananBerlangsungList orders={activeManifestOrders} />
+              </div>
+            )}
+            {activeMenu === 'history' && (
+              <div className="p-8">
+                <HistoryPesananList orders={historyOrders} />
+              </div>
+            )}
           </main>
+
         </div>
       )}
     </div>

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -74,8 +73,6 @@ public class OrderService {
     public List<Order> viewOrder(String username, String status) {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
-        orderRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan"));
         List<Order> order = orderRepository.findByUserAndStatus(user, status);
         if (order.isEmpty()) {
             throw new RuntimeException("Pesanan yang sedang dilakukan tidak ditemukan");
@@ -83,16 +80,17 @@ public class OrderService {
         return order;
     }
 
-    public Optional<Order> viewAllOrder(String username) {
+    public List<Order> viewAllOrder(String username) {
+        // 1. Cari user berdasarkan email/username
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
-        orderRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan"));
-        Optional<Order> order = orderRepository.findByUser(user);
-        if (order.isEmpty()) {
-            throw new RuntimeException("Pesanan yang sedang dilakukan tidak ditemukan");
-        }
-        return order;
+
+        // 2. Ambil semua data pesanan dalam bentuk List
+        List<Order> orders = orderRepository.findByUser(user);
+
+        // 3. Langsung return list-nya (bisa berisi data, atau kosong [] jika belum
+        // pernah order)
+        return orders;
     }
 
     public Order detailPesanan(Long id) {
@@ -120,7 +118,9 @@ public class OrderService {
     public String updateStatusPengiriman(Long id, String statusPengiriman) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan"));
-        if (!order.getStatus().equals("ONGOING")) {
+        if (statusPengiriman.equals("Tiba-di-Tujuan") && order.getUrlInvoice() != null) {
+            order.setStatus("DONE");
+        } else if (!order.getStatus().equals("ONGOING")) {
             throw new RuntimeException("Pesanan tidak sedang diproses");
         }
         order.setStatusPengiriman(statusPengiriman);
@@ -147,6 +147,10 @@ public class OrderService {
             String urlImage = fileStorageService.uploadFile(invoice);
             order.setUrlInvoice(urlImage);
             orderRepository.save(order);
+            if (order.getStatusPengiriman().equals("Tiba-di-Tujuan")) {
+                order.setStatus("DONE");
+                orderRepository.save(order);
+            }
             return urlImage;
         } catch (IOException e) {
             return e.getMessage();

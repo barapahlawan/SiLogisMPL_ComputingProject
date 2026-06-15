@@ -1,7 +1,6 @@
 package com.BE_SiLogisMPL.ComPro.Controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,12 +46,12 @@ public class OrderController {
 
         @GetMapping("/view")
         @PreAuthorize("hasRole('USER')")
-        public WebResponse<Optional<Order>> viewOrder(Authentication authentication) {
+        public WebResponse<List<Order>> viewOrder(Authentication authentication) {
                 org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
                                 .getPrincipal();
                 String username = userDetails.getUsername();
-                Optional<Order> token = orderService.viewAllOrder(username);
-                return WebResponse.<Optional<Order>>builder()
+                List<Order> token = orderService.viewAllOrder(username);
+                return WebResponse.<List<Order>>builder()
                                 .code(HttpStatus.OK.value())
                                 .status(HttpStatus.OK.getReasonPhrase())
                                 .data(token)

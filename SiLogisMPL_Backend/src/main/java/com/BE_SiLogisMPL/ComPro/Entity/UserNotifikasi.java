@@ -1,5 +1,7 @@
 package com.BE_SiLogisMPL.ComPro.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -33,5 +35,6 @@ public class UserNotifikasi {
     private Order order;
     @OneToOne
     @MapsId
+    @JsonIgnore
     private User user;
 }

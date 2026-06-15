@@ -16,6 +16,6 @@ public class Login {
     private String email;
 
     @NotBlank(message = "Password tidak boleh kosong")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!.*]).{8,}$", message = "Password minimal 8 karakter, serta harus mengandung angka, huruf besar, huruf kecil, dan karakter spesial")
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!.*_-]).{8,}$", message = "Password minimal 8 karakter, serta harus mengandung angka, huruf besar, huruf kecil, dan karakter spesial")
     private String password;
 }

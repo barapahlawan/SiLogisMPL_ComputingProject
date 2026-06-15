@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useData } from "../contexts/DataContext";
+import { api } from "../lib/api"; // Memakai instance axios terpusat
 import { X } from "lucide-react";
 import { toast } from "sonner";
 
+// ── KOMPONEN MODAL SUKSES ──
 function SuccessModal({ open, onClose }) {
   if (!open) return null;
 
@@ -58,37 +59,16 @@ function SuccessModal({ open, onClose }) {
         }}
       >
         <svg viewBox="0 0 100 100" width="100" height="100" style={{ overflow: "visible" }}>
-          <circle
-            cx="50" cy="50" r="46"
-            fill="#f0fdf4" stroke="#22c55e" strokeWidth="3.5"
-            className="pop-circle"
-          />
-          <polyline
-            points="28,52 44,68 72,36"
-            fill="none"
-            stroke="#22c55e"
-            strokeWidth="5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="check-line"
-          />
+          <circle cx="50" cy="50" r="46" fill="#f0fdf4" stroke="#22c55e" strokeWidth="3.5" className="pop-circle" />
+          <polyline points="28,52 44,68 72,36" fill="none" stroke="#22c55e" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" className="check-line" />
         </svg>
 
-        <div style={{
-          fontSize: 17, fontWeight: 800,
-          color: "#111827", letterSpacing: 1,
-          textAlign: "center",
-        }}>
+        <div style={{ fontSize: 17, fontWeight: 800, color: "#111827", letterSpacing: 1, textAlign: "center" }}>
           INVOICE BERHASIL TERKIRIM
         </div>
-        
-        <div style={{
-          fontSize: 11, fontWeight: 600,
-          color: "#9CA3AF", letterSpacing: 0.5,
-          textAlign: "center", marginTop: -16, marginBottom: 8,
-          textTransform: "uppercase"
-        }}>
-          Shelter akan menghubungi anda atau anda bisa menghubungi shelter
+
+        <div style={{ fontSize: 11, fontWeight: 600, color: "#9CA3AF", letterSpacing: 0.5, textAlign: "center", marginTop: -16, marginBottom: 8, textTransform: "uppercase" }}>
+          Berkas tagihan telah disimpan ke cloud logistik
         </div>
 
         <button
@@ -108,23 +88,100 @@ function SuccessModal({ open, onClose }) {
   );
 }
 
+// ── KOMPONEN UTAMA PAGE UPINVOICE ──
 export default function UpInvoice() {
   const { id } = useParams();
-  const { orders = [], setInvoiceUploaded } = useData();
   const navigate = useNavigate();
 
   const fileInputRef = useRef(null);
-  const order = orders.find((o) => String(o.id) === String(id));
 
+  // State manajemen data lokal & API
+  const [orderExists, setOrderExists] = useState(true);
+  const [fetchingOrder, setFetchingOrder] = useState(true);
   const [file, setFile] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  if (!order) {
+  // Verifikasi apakah ID Order tersebut valid & ada di dalam database backend
+  useEffect(() => {
+    const verifyTargetOrder = async () => {
+      try {
+        const response = await api.get(`/order/${id}`);
+        const result = response.data?.data || response.data;
+        if (Array.isArray(result)) {
+          const isFound = result.some(o => String(o.id) === String(id));
+          setOrderExists(isFound);
+        }
+      } catch (error) {
+        console.error("Gagal memverifikasi manifes tujuan:", error);
+      } finally {
+        setFetchingOrder(false);
+      }
+    };
+    verifyTargetOrder();
+  }, [id]);
+
+  // Handler validasi tipe berkas saat dipilih/di-drop
+  const handleFile = (f) => {
+    if (!f) return;
+    const validType = f.type === "application/pdf" || f.type === "image/png" || f.type === "image/jpeg";
+    if (!validType) {
+      toast.error("Format file harus berupa PDF, PNG, atau JPEG");
+      return;
+    }
+    setFile(f);
+  };
+
+  // Fungsi submit form-data (Multipart) langsung ke endpoint backend Spring Boot
+  const handleSubmit = async () => {
+    if (!file) {
+      toast.error("Pilih berkas file invoice terlebih dahulu");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Membungkus file biner ke dalam objek konstruktor FormData JavaScript
+      const formDataPayload = new FormData();
+      // 'file' disesuaikan dengan key parameter @RequestParam("file") MultipartFile di Spring Boot kamu
+      formDataPayload.append("file", file);
+
+      // Eksekusi POST request ke endpoint /order/invoice/{id}
+      const response = await api.post(`/order/invoice/${id}`, formDataPayload, {
+        headers: {
+          "Content-Type": "multipart/form-data" // Memberitahu axios untuk menyusun boundary data berkas
+        }
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        toast.success("Dokumen invoice sukses diunggah!");
+        setSuccess(true);
+      }
+    } catch (error) {
+      console.error("Gagal mengunggah file invoice:", error);
+      const errTxt = error.response?.data?.message || "Terjadi kesalahan internal server saat proses unggah.";
+      toast.error(errTxt);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Tampilan Loading Spinner sewaktu memverifikasi manifes ID Order ke server
+  if (fetchingOrder) {
+    return (
+      <div style={{ fontFamily: "'Manrope', sans-serif", padding: 40, textAlign: "center" }}>
+        <p style={{ color: "#6B7280", fontWeight: 600 }}>Memverifikasi manifes logistik...</p>
+      </div>
+    );
+  }
+
+  // Tampilan Error jika ID Order di URL parameter tidak terdaftar di DB
+  if (!orderExists) {
     return (
       <div style={{ fontFamily: "'Manrope', sans-serif", padding: 40 }}>
-        <p style={{ color: "#6B7280" }}>Pesanan tidak ditemukan.</p>
+        <p style={{ color: "#EF4444", fontWeight: 700 }}>Pesanan ID #{id} tidak ditemukan di sistem database.</p>
         <button
           onClick={() => navigate("/status-pengiriman")}
           style={{
@@ -132,42 +189,22 @@ export default function UpInvoice() {
             borderRadius: 8, padding: "10px 24px", fontSize: 14, fontWeight: 700, cursor: "pointer",
           }}
         >
-          Kembali
+          Kembali ke Monitoring
         </button>
       </div>
     );
   }
 
-  const handleFile = (f) => {
-    if (!f) return;
-    const validType = f.type === "application/pdf" || f.type === "image/png";
-    if (!validType) { toast.error("File harus PDF atau PNG"); return; }
-    setFile(f);
-  };
-
-  const handleSubmit = async () => {
-    if (!file) { toast.error("Pilih file terlebih dahulu"); return; }
-    try {
-      setLoading(true);
-      await setInvoiceUploaded(order.id, file);
-      setSuccess(true);
-    } catch {
-      toast.error("Gagal upload invoice");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');`}</style>
 
+      {/* Modal Sukses */}
       <SuccessModal open={success} onClose={() => navigate("/status-pengiriman")} />
 
-      {/* ── MAIN PAGE ── */}
       <div style={{ fontFamily: "'Manrope', sans-serif", background: "#F8F9FB", minHeight: "100vh", padding: "40px 40px" }}>
 
-        {/* Breadcrumb */}
+        {/* Jalur Breadcrumb Navigation */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
           <span
             onClick={() => navigate("/status-pengiriman")}
@@ -177,26 +214,21 @@ export default function UpInvoice() {
           </span>
           <span style={{ color: "#9CA3AF", fontSize: 13 }}>›</span>
           <span style={{ fontSize: 11, fontWeight: 700, color: "#FFA000", textTransform: "uppercase", letterSpacing: 0.8 }}>
-            Pesanan {order.id}
+            Pesanan {id}
           </span>
         </div>
 
-        {/* Title */}
+        {/* Judul Utama Halaman */}
         <h1 style={{ fontSize: 30, fontWeight: 800, color: "#111827", margin: 0 }}>Invoice</h1>
-        <h2 style={{ fontSize: 30, fontWeight: 800, color: "#FFA000", margin: "4px 0 0" }}>#{order.id}</h2>
-        <p style={{ fontSize: 13, color: "#9CA3AF", margin: "10px 0 28px" }}>Kirim invoice ke customer</p>
+        <h2 style={{ fontSize: 30, fontWeight: 800, color: "#FFA000", margin: "4px 0 0" }}>#{id}</h2>
+        <p style={{ fontSize: 13, color: "#9CA3AF", margin: "10px 0 28px" }}>Kirim berkas tagihan digital resmi kepada pihak pelanggan</p>
 
-        {/* Card */}
-        <div style={{
-          background: "#fff", borderRadius: 16, border: "1px solid #F0F0F0",
-          boxShadow: "0 1px 6px rgba(0,0,0,0.04)", padding: "32px",
-          maxWidth: 900,
-        }}>
-          {/* Card Header */}
+        {/* Panel Form Pengunggahan */}
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #F0F0F0", boxShadow: "0 1px 6px rgba(0,0,0,0.04)", padding: "32px", maxWidth: 900 }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>Kirim Invoice</div>
-              <div style={{ fontSize: 13, color: "#9CA3AF", marginTop: 2 }}>Tambahkan dokumen disini</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>Kirim Dokumen Pembayaran</div>
+              <div style={{ fontSize: 13, color: "#9CA3AF", marginTop: 2 }}>Seret atau unggah file penagihan di bawah ini</div>
             </div>
             <button
               onClick={() => navigate("/status-pengiriman")}
@@ -206,20 +238,16 @@ export default function UpInvoice() {
             </button>
           </div>
 
-          {/* Upload Zone */}
+          {/* Zona Deteksi Drag & Drop File */}
           <div
             onClick={() => fileInputRef.current?.click()}
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files?.[0]); }}
             style={{
-              border: "2px dashed #FFA000",
-              borderRadius: 12,
-              padding: "56px 24px",
-              textAlign: "center",
-              cursor: "pointer",
-              background: dragOver ? "rgba(254,243,199,0.5)" : "#fff",
-              transition: "background 0.2s",
+              border: "2px dashed #FFA000", borderRadius: 12, padding: "56px 24px",
+              textAlign: "center", cursor: "pointer",
+              background: dragOver ? "rgba(254,243,199,0.5)" : "#fff", transition: "background 0.2s",
             }}
           >
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
@@ -235,14 +263,14 @@ export default function UpInvoice() {
                   <div style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>{file.name}</div>
                   <button
                     onClick={(e) => { e.stopPropagation(); setFile(null); }}
-                    style={{ fontSize: 12, color: "#EF4444", background: "none", border: "none", cursor: "pointer" }}
+                    style={{ fontSize: 12, color: "#EF4444", background: "none", border: "none", cursor: "pointer", fontWeight: 700 }}
                   >
-                    Hapus file
+                    Ganti Berkas Dokumen
                   </button>
                 </>
               ) : (
                 <>
-                  <p style={{ fontSize: 13, color: "#6B7280", margin: 0 }}>Seret file Anda untuk memulai pengunggahan</p>
+                  <p style={{ fontSize: 13, color: "#6B7280", margin: 0 }}>Seret dokumen berkas Anda ke area ini untuk memulai</p>
                   <p style={{ fontSize: 13, color: "#9CA3AF", margin: 0 }}>ATAU</p>
                   <button
                     onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
@@ -251,10 +279,8 @@ export default function UpInvoice() {
                       fontSize: 13, fontWeight: 600, padding: "6px 20px", borderRadius: 8,
                       cursor: "pointer", fontFamily: "inherit",
                     }}
-                    onMouseEnter={(e) => e.target.style.background = "#FEF3C7"}
-                    onMouseLeave={(e) => e.target.style.background = "#fff"}
                   >
-                    Telusuri file
+                    Telusuri File Lokal
                   </button>
                 </>
               )}
@@ -262,7 +288,7 @@ export default function UpInvoice() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.png"
+                accept=".pdf,.png,.jpg,.jpeg"
                 hidden
                 onChange={(e) => handleFile(e.target.files?.[0])}
               />
@@ -270,34 +296,28 @@ export default function UpInvoice() {
           </div>
 
           <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 10, marginBottom: 0 }}>
-            Hanya mendukung file .pdf, .png.
+            Ekstensi berkas yang didukung sistem: .pdf, .png, .jpg (Maksimal kapasitas standar 10MB)
           </p>
 
-          {/* Actions */}
+          {/* Tombol Aksi Kontrol */}
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 24 }}>
             <button
               onClick={() => navigate("/status-pengiriman")}
-              style={{
-                border: "1px solid #E5E7EB", background: "#fff", color: "#374151",
-                borderRadius: 8, padding: "10px 24px", fontSize: 14, fontWeight: 600,
-                cursor: "pointer", fontFamily: "inherit",
-              }}
+              style={{ border: "1px solid #E5E7EB", background: "#fff", color: "#374151", borderRadius: 8, padding: "10px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
             >
-              Kembali
+              Batal
             </button>
             <button
               onClick={handleSubmit}
               disabled={!file || loading}
               style={{
-                background: "#FFA000",
-                color: "#fff", border: "none", borderRadius: 8,
+                background: "#FFA000", color: "#fff", border: "none", borderRadius: 8,
                 padding: "10px 32px", fontSize: 14, fontWeight: 700,
                 cursor: !file || loading ? "not-allowed" : "pointer",
-                opacity: !file || loading ? 0.5 : 1,
-                fontFamily: "inherit",
+                opacity: !file || loading ? 0.5 : 1, fontFamily: "inherit",
               }}
             >
-              {loading ? "Mengirim..." : "Kirim"}
+              {loading ? "Mengirim ke PostgreSQL..." : "Unggah Invoice"}
             </button>
           </div>
         </div>

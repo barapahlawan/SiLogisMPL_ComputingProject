@@ -3,8 +3,6 @@ package com.BE_SiLogisMPL.ComPro.DTO;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -54,11 +52,7 @@ public class CompanyProfileDTO {
     @NotEmpty(message = "Teks badge tidak boleh kosong")
     private String teksBadge;
 
-    private String urlGambarOtomatis;
-
-    private MultipartFile fileGambarOtomatis;
-
-    private String urlGambarManual;
+    private String urlGambar;
 
     @NotEmpty(message = "Alt text tidak boleh kosong")
     private String altText;

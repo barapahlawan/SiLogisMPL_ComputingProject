@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useData } from "../contexts/DataContext";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Checkbox } from "../components/ui/checkbox";
-import { User } from "lucide-react";
+import { User, MapPin, Download } from "lucide-react";
 import { toast } from "sonner";
+import { api } from "../lib/api"; // 🛠️ Menembak Spring Boot admin controller via API helper
 
 function SuccessModal({ open, onClose }) {
   if (!open) return null;
@@ -77,20 +77,11 @@ function SuccessModal({ open, onClose }) {
           />
         </svg>
 
-        <div style={{
-          fontSize: 17, fontWeight: 800,
-          color: "#111827", letterSpacing: 1,
-          textAlign: "center",
-        }}>
+        <div style={{ fontSize: 17, fontWeight: 800, color: "#111827", letterSpacing: 1, textAlign: "center" }}>
           VERIFIKASI BERHASIL
         </div>
-        
-        <div style={{
-          fontSize: 12, fontWeight: 600,
-          color: "#9CA3AF", letterSpacing: 1,
-          textAlign: "center", marginTop: -16, marginBottom: 8,
-          textTransform: "uppercase"
-        }}>
+
+        <div style={{ fontSize: 12, fontWeight: 600, color: "#9CA3AF", letterSpacing: 1, textAlign: "center", marginTop: -16, marginBottom: 8, textTransform: "uppercase" }}>
           Silahkan melihat riwayat di status pengiriman
         </div>
 
@@ -104,7 +95,7 @@ function SuccessModal({ open, onClose }) {
             width: "100%", letterSpacing: 0.5
           }}
         >
-          LIHAT STATUS PENGIRIMAN
+          LIHAT DAFTAR UTAMA
         </button>
       </div>
     </div>
@@ -113,29 +104,82 @@ function SuccessModal({ open, onClose }) {
 
 export default function DetailVerifikasi() {
   const { id } = useParams();
-  const { orders, verifyOrder } = useData();
   const navigate = useNavigate();
-  const order = orders.find((o) => o.id === id);
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [agree, setAgree] = useState(false);
   const [driver, setDriver] = useState({ name: "", plate: "" });
   const [showSuccess, setShowSuccess] = useState(false);
 
-  if (!order) {
+  // 🛠️ 1. Ambil data spesifik order berdasarkan ID langsung dari Backend saat komponen dimuat
+  useEffect(() => {
+    const fetchOrderDetail = async () => {
+      try {
+        // Menembak endpoint backend untuk mendapatkan detail order
+        const response = await api.get(`/order/${id}`);
+
+        // response.data.data langsung merujuk ke objek {} yang kamu kirim di atas
+        const result = response.data?.data || response.data;
+
+        console.log("Data objek dari backend:", result);
+
+        if (result && typeof result === 'object') {
+          // 🛠️ LANGSUNG SET ORDER: Tanpa perlu array .find() lagi karena datanya sudah tunggal dan tepat!
+          setOrder(result);
+        } else {
+          setOrder(null);
+        }
+      } catch (error) {
+        console.error("Gagal memuat detail verifikasi order:", error);
+        toast.error("Gagal terhubung dengan server logistik.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrderDetail();
+  }, [id]);
+
+  // 🛠️ 2. Hubungkan ke admin controller PatchMapping("/{id}/{status}") milikmu
+  const handleVerify = async () => {
+    if (!agree) return toast.error("Centang persetujuan terlebih dahulu");
+    if (!driver.name || !driver.plate) return toast.error("Lengkapi info pengantar (Driver & Plat)");
+
+    try {
+      // Kirim data driver di body payload jika diperlukan oleh orderService di backend kamu
+      const response = await api.patch(`/order/${order.id}/ONGOING`, {
+        namaDriver: driver.name,
+        platNomor: driver.plate
+      });
+
+      if (response.status === 200 || response.data) {
+        toast.success("Manifest sukses diverifikasi ke status ONGOING!");
+        setShowSuccess(true);
+      }
+    } catch (error) {
+      console.error("Gagal melakukan verifikasi pesanan:", error);
+      toast.error(error.response?.data?.errors || "Gagal memperbarui status verifikasi.");
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="max-w-[1100px]">
-        <p className="text-gray-500">Pesanan tidak ditemukan.</p>
-        <Button onClick={() => navigate("/pesanan")} className="mt-4">Kembali</Button>
+      <div className="min-h-[400px] flex flex-col items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#FFA000] border-t-transparent rounded-full animate-spin mb-3"></div>
+        <p className="text-sm text-gray-500 font-medium">Memuat berkas pesanan...</p>
       </div>
     );
   }
 
-  const handleVerify = async () => {
-    if (!agree) return toast.error("Centang persetujuan terlebih dahulu");
-    if (!driver.name || !driver.plate) return toast.error("Lengkapi info pengantar");
-    await verifyOrder(order.id, driver);
-    setShowSuccess(true);
-  };
+  if (!order) {
+    return (
+      <div className="max-w-[1100px] py-10 text-center bg-white rounded-2xl border">
+        <p className="text-gray-500 font-medium">Berkas manifest ID #{id} tidak terdaftar di sistem.</p>
+        <Button onClick={() => navigate("/pesanan")} className="mt-4 bg-[#FFA000] hover:bg-[#FFA000]/90 text-white">Kembali</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[1100px]" data-testid="detail-verifikasi-page">
@@ -143,79 +187,67 @@ export default function DetailVerifikasi() {
       <h2 className="text-3xl font-extrabold mt-1" style={{ color: "#FFA000" }}>#{order.id}</h2>
       <div className="mt-2 text-[11px] tracking-wider uppercase text-gray-500">
         Data Pesanan <span className="text-gray-300 mx-1">›</span>
-        <span className="font-semibold" style={{ color: "#FFA000" }}>Pesanan MP-{order.manifestId}</span>
+        <span className="font-semibold" style={{ color: "#FFA000" }}>Pesanan MP-{order.id}</span>
       </div>
       <p className="text-sm text-gray-600 mt-3 mb-7">Periksa kelengkapan data sebelum membuat invoice</p>
 
-      {/* Info Card */}
-      <div className="mpl-card p-7 relative overflow-hidden" style={{ border: "0.5px solid ..." }}>
-      {/* Border kiri dengan rounded top */}
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 8,
-          backgroundColor: "#FFA000",
-          borderRadius: "12px 0 0 12px",
-        }}
-      />
-      <span
-        className="absolute right-7 top-7 text-[10px] font-bold tracking-wider text-white px-2.5 py-1 rounded"
-        style={{ backgroundColor: "#FFA000" }}
-      >
-        MANIFEST ID: #{order.manifestId}
-      </span>
-        <div className="text-[11px] tracking-[0.15em] uppercase text-gray-400 font-semibold mb-4">Informasi Pelanggan</div>
+      {/* 🛠️ 3. SINKRONISASI VISUAL: Menggunakan kolom real dari database PostgreSQL kamu */}
+      <div className="mpl-card p-7 bg-white rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden mb-6">
+        <div
+          style={{
+            position: "absolute", left: 0, top: 0, bottom: 0, width: 8,
+            backgroundColor: "#FFA000", borderRadius: "12px 0 0 12px",
+          }}
+        />
+        <span className="absolute right-7 top-7 text-[10px] font-bold tracking-wider text-white px-2.5 py-1 rounded-sm bg-[#FFA000]">
+          STATUS: {order.status || "PENDING"}
+        </span>
 
-        <div className="grid grid-cols-2 gap-x-12 gap-y-4">
-          <Field label="Nama Pengirim / Gudang" value={order.sender.name} bold />
-          <Field label="Nama Penerima / Gudang" value={order.receiver.name} bold />
-          <Field label="PIC Pengirim" value={order.sender.pic} bold />
-          <Field label="PIC Penerima" value={order.receiver.pic} bold />
-          <Field label="Nomor Telepon Pengirim" value={order.sender.phone} bold />
-          <Field label="Nomor Telepon Penerima" value={order.receiver.phone} bold />
+        <div className="text-[11px] tracking-[0.15em] uppercase text-gray-400 font-semibold mb-6">Informasi Pelanggan</div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+          <Field label="Nama Pengirim / Gudang" value={order.namaPengirim || "-"} bold />
+          <Field label="Nama Penerima / Gudang" value={order.namaPenerima || "-"} bold />
+          <Field label="PIC Pengirim" value={order.picPengirim || "-"} bold />
+          <Field label="PIC Penerima" value={order.picPenerima || "-"} bold />
+          <Field label="Nomor Telepon Pengirim" value={order.nomorTeleponPengirim || "-"} bold />
+          <Field label="Nomor Telepon Penerima" value={order.nomorTeleponPenerima || "-"} bold />
         </div>
 
-        <div className="mt-7 pt-6 border-t border-gray-100">
-          <div className="text-[11px] tracking-[0.15em] uppercase text-gray-400 font-semibold mb-2">Informasi Muatan</div>
-          <div className="text-2xl font-bold text-gray-900 mb-5">{order.cargo.title}</div>
+        <div className="mt-8 pt-6 border-t border-gray-100">
+          <div className="text-[11px] tracking-[0.15em] uppercase text-gray-400 font-semibold mb-3">Informasi Muatan</div>
+          <div className="text-2xl font-bold text-gray-900 mb-5">{order.jenisPaket || "Paket Logistik"}</div>
           <div className="grid grid-cols-3 gap-4 mb-6">
-            <Stat label="Total Berat" value={order.cargo.weight} unit="KG" />
-            <Stat label="Jenis Paket" value={order.cargo.packageType} unit="" />
-            <Stat label="Total Paket" value={order.cargo.totalPackage} unit="PAKET" />
+            <Stat label="Total Berat" value={order.totalBerat || 0} unit="KG" />
+            <Stat label="Jenis Paket" value={order.jenisPaket || "-"} unit="" />
+            <Stat label="Total Paket" value={order.totalPaket || 0} unit="PAKET" />
           </div>
           <div className="flex items-center gap-4">
-            <img src={order.vehicle.image} alt={order.vehicle.type} className="w-28 h-20 rounded-lg object-cover bg-gray-100" />
+            <div className="w-20 h-16 bg-gray-100 rounded-xl flex items-center justify-center font-bold text-gray-400 text-xs uppercase border">
+              {order.jenisKendaraan || "Truck"}
+            </div>
             <div>
-              <div className="text-lg font-bold text-gray-900">{order.vehicle.type}</div>
+              <div className="text-lg font-bold text-gray-900">{order.jenisKendaraan || "Tipe Fleet Standar"}</div>
               <div className="text-sm text-gray-500 flex items-center gap-1">
-                <span style={{ color: "#FFA000" }}>⬡</span> Kapasitas:{" "}
-                <span className="font-semibold text-gray-700">{order.vehicle.capacity}</span>
+                <span style={{ color: "#FFA000" }}>⬡</span> Kategori: <span className="font-semibold text-gray-700">{order.tipe || "Reguler"}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Route + Approval side by side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {/* Rute Pengiriman */}
-        <div className="mpl-card p-7">
-          <div className="text-[11px] tracking-[0.15em] uppercase text-gray-400 font-semibold mb-4">Rute Pengiriman</div>
-          <div className="space-y-5">
-            <RoutePoint type="muat" city={order.route.pickup.city} name={order.route.pickup.name} address={order.route.pickup.address} />
-            <RoutePoint type="bongkar" city={order.route.dropoff.city} name={order.route.dropoff.name} address={order.route.dropoff.address} />
+      {/* Rute & Form Driver Setup */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="mpl-card p-7 bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <div className="text-[11px] tracking-[0.15em] uppercase text-gray-400 font-semibold mb-5">Rute Pengiriman</div>
+          <div className="space-y-6">
+            <RoutePoint type="muat" city="Titik Asal" name={order.namaPengirim || "Lokasi Pengirim"} address={order.alamatAsal} />
+            <RoutePoint type="bongkar" city="Destinasi" name={order.namaPenerima || "Lokasi Penerima"} address={order.alamatTujuan} />
           </div>
         </div>
 
-        {/* Approval + Tombol */}
-        <div className="mpl-card p-7 flex flex-col justify-between">
-          <div
-            className="flex items-start gap-3 cursor-pointer"
-            onClick={() => setAgree((prev) => !prev)}
-          >
+        <div className="mpl-card p-7 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
+          <div className="flex items-start gap-3 cursor-pointer" onClick={() => setAgree((prev) => !prev)}>
             <Checkbox
               id="agree-checkbox"
               checked={agree}
@@ -231,12 +263,7 @@ export default function DetailVerifikasi() {
           </div>
 
           <div className="flex items-center justify-end gap-4 mt-8">
-            <Button
-              variant="outline"
-              onClick={() => navigate(-1)}
-              data-testid="back-btn"
-              className="h-12 px-6 bg-white text-gray-800 border border-gray-200 hover:bg-gray-50"
-            >
+            <Button variant="outline" onClick={() => navigate(-1)} data-testid="back-btn" className="h-12 px-6 bg-white border text-gray-700">
               Kembali
             </Button>
             <Button
@@ -252,39 +279,39 @@ export default function DetailVerifikasi() {
         </div>
       </div>
 
-      {/* Informasi Pengantar — full width below */}
-      <div className="mpl-card p-7 mt-6">
+      {/* Input Informasi Pengantar */}
+      <div className="mpl-card p-7 bg-white rounded-2xl border border-gray-100 shadow-sm mt-6 mb-12">
         <div className="text-[11px] tracking-[0.15em] uppercase text-gray-400 font-semibold mb-4">Informasi Pengantar</div>
         <div className="flex items-start gap-4">
           <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
             <User className="w-7 h-7 text-gray-400" />
           </div>
-          <div className="flex-1 space-y-3 max-w-xs">
+          <div className="flex-1 space-y-4 max-w-xs">
             <div>
               <label className="text-[10px] tracking-wider uppercase text-gray-400 font-semibold">Nama Driver</label>
               <Input
                 data-testid="driver-name"
-                placeholder="cth: Budi"
+                placeholder="cth: Budi Santoso"
                 value={driver.name}
                 onChange={(e) => setDriver((prev) => ({ ...prev, name: e.target.value }))}
-                className="mt-1 bg-gray-50 border-gray-100"
+                className="mt-1 bg-gray-50 border-gray-100 focus:ring-1 focus:ring-[#FFA000]"
               />
             </div>
             <div>
-              <label className="text-[10px] tracking-wider uppercase text-gray-400 font-semibold">Plat Nomor</label>
+              <label className="text-[10px] tracking-wider uppercase text-gray-400 font-semibold">Plat Nomor Kendaraan</label>
               <Input
                 data-testid="driver-plate"
-                placeholder="cth: BK 4511 IA"
+                placeholder="cth: B 9128 MPL"
                 value={driver.plate}
                 onChange={(e) => setDriver((prev) => ({ ...prev, plate: e.target.value }))}
-                className="mt-1 bg-gray-50 border-gray-100"
+                className="mt-1 bg-gray-50 border-gray-100 focus:ring-1 focus:ring-[#FFA000]"
               />
             </div>
           </div>
         </div>
       </div>
 
-      <SuccessModal open={showSuccess} onClose={() => navigate("/status-pengiriman")} />
+      <SuccessModal open={showSuccess} onClose={() => navigate("/pesanan")} />
     </div>
   );
 }
@@ -293,18 +320,18 @@ function Field({ label, value, bold }) {
   return (
     <div>
       <div className="text-[10px] tracking-[0.15em] uppercase text-gray-400 font-semibold">{label}</div>
-      <div className={`mt-1 text-gray-900 ${bold ? "font-bold text-[15px]" : ""}`}>{value}</div>
+      <div className={`mt-1 text-gray-900 ${bold ? "font-bold text-[15px]" : ""}`}>{value || "-"}</div>
     </div>
   );
 }
 
 function Stat({ label, value, unit }) {
   return (
-    <div className="bg-gray-50 rounded-xl p-4">
+    <div className="bg-gray-50 rounded-xl p-4 border border-gray-100/50">
       <div className="text-[10px] tracking-[0.15em] uppercase text-gray-400 font-semibold">{label}</div>
       <div className="mt-2 text-gray-900 flex items-baseline gap-1">
         <span className="text-xl font-bold">{value}</span>
-        {unit && <span className="text-xs text-gray-500">{unit}</span>}
+        {unit && <span className="text-xs text-gray-500 font-semibold">{unit}</span>}
       </div>
     </div>
   );
@@ -319,10 +346,10 @@ function RoutePoint({ type, city, name, address }) {
       </div>
       <div className="flex-1 pb-1">
         <div className="text-[10px] tracking-[0.15em] uppercase font-bold" style={{ color: "#FFA000" }}>
-          Titik {type === "muat" ? "Muat" : "Bongkar"} — {city}
+          {city} — {type === "muat" ? "TITIK MUAT" : "TITIK BONGKAR"}
         </div>
         <div className="text-[15px] font-bold text-gray-900 mt-1">{name}</div>
-        <div className="text-xs text-gray-500 mt-0.5">{address}</div>
+        <div className="text-xs text-gray-500 mt-0.5">{address || "Alamat belum diinput lengkap."}</div>
       </div>
     </div>
   );

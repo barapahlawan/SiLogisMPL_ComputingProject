@@ -122,11 +122,17 @@ public class UserService {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
 
-        if (userRepository.existsByUsername(adminProfileDTO.getUsername())) {
+        if (user.getUsername().equals(adminProfileDTO.getUsername())) {
+            // Jika username yang diupdate sama dengan username saat ini, maka tidak perlu
+            // cek duplikasi
+        } else if (userRepository.existsByUsername(adminProfileDTO.getUsername())) {
             throw new RuntimeException("Username sudah dipakai");
         }
 
-        if (userRepository.existsByEmail(adminProfileDTO.getEmail())) {
+        if (user.getEmail().equals(adminProfileDTO.getEmail())) {
+            // Jika email yang diupdate sama dengan email saat ini, maka tidak perlu cek
+            // duplikasi
+        } else if (userRepository.existsByEmail(adminProfileDTO.getEmail())) {
             throw new RuntimeException("Email sudah dipakai");
         }
 
@@ -151,22 +157,25 @@ public class UserService {
         return user;
     }
 
-    public String editCompanyProfile(CompanyProfileDTO companyProfileDTO, String username) {
+    public String editCompanyProfile(MultipartFile file, CompanyProfileDTO companyProfileDTO, String username) {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
         CompanyProfile companyProfile = user.getCompanyProfile();
-        try {
-            System.out.println("outsave");
-            if (companyProfileDTO.getFileGambarOtomatis() != null
-                    && !companyProfileDTO.getFileGambarOtomatis().isEmpty()) {
-                String urlImage = fileStorageService.uploadFile(companyProfileDTO.getFileGambarOtomatis());
-                companyProfileDTO.setUrlGambarOtomatis(urlImage);
+        if (file != null && !file.isEmpty()) {
+            try {
+                String urlImage = fileStorageService.uploadFile(file);
+                System.out.println(urlImage);
+                companyProfile.setUrlGambar(urlImage); // Langsung set ke entity companyProfile
+                System.out.println("outsave");
+            } catch (IOException e) {
+                System.out.println("outgagal");
+                return e.getMessage();
             }
-        } catch (IOException e) {
-            System.out.println("outgagal");
-            return e.getMessage();
+        } else {
+            // Jika frontend tidak mengirim file baru, pertahankan URL gambar yang lama
+            System.out.println("Tidak ada file baru yang diunggah, mempertahankan gambar lama.");
         }
-        companyProfileDTO.setFileGambarOtomatis(null);
+
         System.out.println("out");
 
         companyProfile.setHeadlineBaris1(companyProfileDTO.getHeadlineBaris1());
@@ -179,8 +188,6 @@ public class UserService {
         companyProfile.setLabelStatistik1(companyProfileDTO.getLabelStatistik1());
         companyProfile.setLabelStatistik2(companyProfileDTO.getLabelStatistik2());
         companyProfile.setTeksBadge(companyProfileDTO.getTeksBadge());
-        companyProfile.setUrlGambarOtomatis(companyProfileDTO.getUrlGambarOtomatis());
-        companyProfile.setUrlGambarManual(companyProfileDTO.getUrlGambarManual());
         companyProfile.setAltText(companyProfileDTO.getAltText());
         companyProfile.setJudulSeksiSiapaKami(companyProfileDTO.getJudulSeksiSiapaKami());
         companyProfile.setParagrafUtama(companyProfileDTO.getParagrafUtama());

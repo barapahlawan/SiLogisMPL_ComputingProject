@@ -1,109 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useData } from "../contexts/DataContext";
+import { api } from "../lib/api";
 import { Loader2 } from "lucide-react";
-
-const DELIVERY_STATUSES = ["Diproses", "Barang Diambil", "Dalam Perjalanan", "Tiba di Tujuan"];
-
-const PAGE_SIZE = 4;
-
-function StatusDropdown({ value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 });
-  const ref = useRef(null);
-  const btnRef = useRef(null);
-
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const handleOpen = () => {
-    if (!open && btnRef.current) {
-      const rect = btnRef.current.getBoundingClientRect();
-      setDropPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
-    }
-    setOpen((v) => !v);
-  };
-
-  const words = value.split(" ");
-
-  return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <button
-        ref={btnRef}
-        onClick={handleOpen}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "6px 14px",
-          height: 48,
-          minWidth: 100,
-          borderRadius: 6,
-          background: "#F3F4F6",
-          border: "1px solid #E5E7EB",
-          fontSize: 12,
-          fontWeight: 600,
-          color: "#374151",
-          cursor: "pointer",
-          lineHeight: 1.4,
-          textAlign: "center",
-          fontFamily: "inherit",
-        }}
-      >
-        {words.length > 1 ? (
-          <>
-            <span>{words.slice(0, Math.ceil(words.length / 2)).join(" ")}</span>
-            <span>{words.slice(Math.ceil(words.length / 2)).join(" ")}</span>
-          </>
-        ) : (
-          <span>{value}</span>
-        )}
-      </button>
-
-      {open && (
-        <div style={{
-          position: "fixed",
-          top: dropPos.top,
-          left: dropPos.left,
-          minWidth: Math.max(dropPos.width, 172),
-          zIndex: 9999,
-          background: "#fff",
-          border: "1px solid #E5E7EB",
-          borderRadius: 8,
-          boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
-          overflow: "hidden",
-        }}>
-          {DELIVERY_STATUSES.map((s) => (
-            <button
-              key={s}
-              onClick={() => { onChange(s); setOpen(false); }}
-              style={{
-                display: "block",
-                width: "100%",
-                textAlign: "left",
-                padding: "10px 16px",
-                fontSize: 13,
-                color: "#111827",
-                background: s === value ? "#FEF3C7" : "transparent",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-              onMouseEnter={(e) => { if (s !== value) e.target.style.background = "#F9FAFB"; }}
-              onMouseLeave={(e) => { if (s !== value) e.target.style.background = "transparent"; }}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+import { toast } from "sonner";
 
 function SuccessModal({ open, onClose }) {
   if (!open) return null;
@@ -115,7 +14,7 @@ function SuccessModal({ open, onClose }) {
         position: "fixed", inset: 0,
         background: "rgba(0,0,0,0.35)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        zIndex: 999,
+        zIndex: 9999,
       }}
     >
       <style>{`
@@ -175,11 +74,7 @@ function SuccessModal({ open, onClose }) {
           />
         </svg>
 
-        <div style={{
-          fontSize: 17, fontWeight: 800,
-          color: "#111827", letterSpacing: 1,
-          textAlign: "center",
-        }}>
+        <div style={{ fontSize: 17, fontWeight: 800, color: "#111827", letterSpacing: 1, textAlign: "center" }}>
           PERUBAHAN BERHASIL
         </div>
 
@@ -189,7 +84,7 @@ function SuccessModal({ open, onClose }) {
             background: "#FFA000", color: "#fff",
             border: "none", borderRadius: 8,
             padding: "10px 32px", fontSize: 14,
-            fontWeight: 700, cursor: "pointer",
+            fontWeight: 700, cursor: "pointer", width: "100%"
           }}
         >
           Tutup
@@ -199,13 +94,132 @@ function SuccessModal({ open, onClose }) {
   );
 }
 
+// ✅ 1. Struktur status menggunakan pasangan Label (untuk UI) dan Value (untuk API URL)
+const DELIVERY_STATUSES = [
+  { label: "Diproses", value: "Diproses" },
+  { label: "Barang Diambil", value: "Barang-Diambil" },
+  { label: "Dalam Perjalanan", value: "Dalam-Perjalanan" },
+  { label: "Tiba di Tujuan", value: "Tiba-di-Tujuan" }
+];
+
+const PAGE_SIZE = 4;
+
+const getInitials = (name) => {
+  if (!name) return "??";
+  const parts = name.trim().split(" ");
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
+// 🛠️ 2. PERBAIKAN DROPDOWN COMPONENT (Menerima value dan mengembalikan value ke parent)
+function StatusDropdown({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 });
+  const ref = useRef(null);
+  const btnRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleOpen = () => {
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setDropPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+    }
+    setOpen((v) => !v);
+  };
+
+  // Cari objek status saat ini berdasarkan value database/state untuk menampilkan label di tombol
+  const currentStatusObj = DELIVERY_STATUSES.find(s => s.value === value) || DELIVERY_STATUSES[0];
+  const words = currentStatusObj.label.split(" ");
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={handleOpen}
+        style={{
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          padding: "6px 14px", height: 48, minWidth: 130, borderRadius: 6,
+          background: "#F3F4F6", border: "1px solid #E5E7EB", fontSize: 12,
+          fontWeight: 600, color: "#374151", cursor: "pointer", lineHeight: 1.4,
+          textAlign: "center", fontFamily: "inherit",
+        }}
+      >
+        {words.length > 1 ? (
+          <>
+            <span>{words.slice(0, Math.ceil(words.length / 2)).join(" ")}</span>
+            <span>{words.slice(Math.ceil(words.length / 2)).join(" ")}</span>
+          </>
+        ) : (
+          <span>{currentStatusObj.label}</span>
+        )}
+      </button>
+
+      {open && (
+        <div style={{
+          position: "fixed", top: dropPos.top, left: dropPos.left,
+          minWidth: Math.max(dropPos.width, 172), zIndex: 9999,
+          background: "#fff", border: "1px solid #E5E7EB", borderRadius: 8,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.10)", overflow: "hidden",
+        }}>
+          {DELIVERY_STATUSES.map((item) => (
+            <button
+              key={item.value}
+              type="button"
+              // 🛠️ Kirim item.value (yang ada tanda hubung, bebas spasi) saat diklik
+              onClick={() => { onChange(item.value); setOpen(false); }}
+              style={{
+                display: "block", width: "100%", textAlign: "left", padding: "10px 16px",
+                fontSize: 13, color: "#111827",
+                background: item.value === value ? "#FEF3C7" : "transparent",
+                border: "none", cursor: "pointer", fontFamily: "inherit",
+              }}
+              onMouseEnter={(e) => { if (item.value !== value) e.target.style.background = "#F9FAFB"; }}
+              onMouseLeave={(e) => { if (item.value !== value) e.target.style.background = "transparent"; }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function StatusPengiriman() {
   const navigate = useNavigate();
-  const { orders, setDeliveryStatus, ordersLoading } = useData();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [localStatuses, setLocalStatuses] = useState({});
   const [page, setPage] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const fetchActiveDeliveries = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/order/');
+      const result = response.data?.data || response.data;
+      if (Array.isArray(result)) {
+        const activeDeliveries = result.filter(o => o.status === "ONGOING");
+        setOrders(activeDeliveries);
+      }
+    } catch (error) {
+      console.error("Gagal mengambil status logistik:", error);
+      toast.error("Gagal sinkronisasi data dari server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchActiveDeliveries();
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(orders.length / PAGE_SIZE));
 
@@ -216,22 +230,30 @@ export default function StatusPengiriman() {
 
   const startIndex = (page - 1) * PAGE_SIZE;
 
-  const handleStatusChange = (id, status) => {
-    setLocalStatuses((prev) => ({ ...prev, [id]: status }));
+  const handleStatusChange = (id, statusValue) => {
+    // Menyimpan value yang aman (contoh: "Barang-Diambil") ke dalam state penampung perubahan
+    setLocalStatuses((prev) => ({ ...prev, [id]: statusValue }));
   };
 
+  // 🛠️ 3. FUNGSI SAVE: Mengirimkan data value bersih ke PatchMapping Spring Boot
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Simpan semua perubahan status ke backend
+      // Object.entries mengekstrak [id, statusValue]
       await Promise.all(
-        Object.entries(localStatuses).map(([id, status]) => setDeliveryStatus(id, status))
+        Object.entries(localStatuses).map(([id, statusValue]) =>
+          // URL final di browser akan tereksekusi rapi: /order/1/pengiriman/Barang-Diambil
+          api.patch(`/order/${id}/pengiriman/${statusValue}`)
+        )
       );
+
       setLocalStatuses({});
+      toast.success("Seluruh status pengiriman berhasil diperbarui!");
       setShowSuccess(true);
+      fetchActiveDeliveries();
     } catch (err) {
-      console.warn("Gagal simpan status:", err?.message);
-      setShowSuccess(true); // tetap tampilkan sukses karena lokal sudah update
+      console.error("Gagal menyimpan perubahan status pengiriman:", err);
+      toast.error("Gagal memperbarui status ke database Spring Boot.");
     } finally {
       setSaving(false);
     }
@@ -239,80 +261,70 @@ export default function StatusPengiriman() {
 
   return (
     <>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');`}</style>
-
-      <div style={{ fontFamily: "'Manrope', sans-serif", background: "#F8F9FB", minHeight: "100vh" }}>
+      <div style={{ fontFamily: "'Inter', sans-serif", background: "#F8F9FB", minHeight: "100vh" }}>
         <main style={{ padding: "40px 40px" }}>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#111827", margin: 0 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#111827", margin: 0, fontFamily: "Manrope" }}>
             Status Pengiriman
           </h1>
           <p style={{ fontSize: 13, color: "#9CA3AF", marginTop: 4, marginBottom: 28 }}>
-            Perbaharui Status Pengiriman
+            Perbaharui Status Pengiriman Lapangan Armada Proyek
           </p>
 
-          <div style={{
-            background: "#fff", borderRadius: 14,
-            border: "1px solid #F0F0F0",
-            boxShadow: "0 1px 6px rgba(0,0,0,0.04)",
-            overflow: "hidden",
-          }}>
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1.4fr 1fr 1.8fr",
-              gap: 16, padding: "14px 28px",
-              background: "#FAFAFA", borderBottom: "1px solid #F0F0F0",
-            }}>
-              {["ID PESANAN", "NAMA PELANGGAN", "TANGGAL", "STATUS"].map((h) => (
+          <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #F0F0F0", boxShadow: "0 1px 6px rgba(0,0,0,0.04)", overflow: "hidden" }}>
+            {/* Table Header */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr 1fr 1.8fr", gap: 16, padding: "14px 28px", background: "#FAFAFA", borderBottom: "1px solid #F0F0F0" }}>
+              {["ID PESANAN", "NAMA PELANGGAN", "ARMADA FLIT", "PERBAHARUI STATUS"].map((h) => (
                 <div key={h} style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", letterSpacing: 0.8, textAlign: "center" }}>{h}</div>
               ))}
             </div>
 
-            {ordersLoading ? (
+            {loading ? (
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "48px" }}>
-                <Loader2 style={{ width: 24, height: 24, color: "#D1D5DB", animation: "spin 1s linear infinite" }} />
+                <Loader2 style={{ width: 24, height: 24, color: "#FFA000", animation: "spin 1s linear infinite" }} />
               </div>
             ) : (
               <div>
                 {items.length === 0 ? (
-                  <div style={{ textAlign: "center", padding: "40px", color: "#9CA3AF", fontSize: 14 }}>
-                    Belum ada pesanan
+                  <div style={{ textAlign: "center", padding: "50px", color: "#9CA3AF", fontSize: 14, fontWeight: 500 }}>
+                    Tidak ada pesanan aktif dalam pengantaran lapangan saat ini.
                   </div>
                 ) : (
                   items.map((o, i) => {
-                    const currentStatus = localStatuses[o.id] ?? o.deliveryStatus ?? "Diproses";
+                    const customerName = o.namaPengirim || o.picPengirim || "Pelanggan";
+                    const initials = getInitials(customerName);
+                    // Ambil status pengiriman lokal, jika belum diubah ambil dari database, jika null set default "Diproses"
+                    const currentStatus = localStatuses[o.id] ?? o.statusPengiriman ?? "Diproses";
+
                     return (
-                      <div key={o.id} style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1.4fr 1fr 1.8fr",
-                        gap: 16, padding: "18px 28px",
-                        alignItems: "center",
-                        borderBottom: i < items.length - 1 ? "1px solid #F9FAFB" : "none",
-                      }}>
+                      <div key={o.id} style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr 1fr 1.8fr", gap: 16, padding: "18px 28px", alignItems: "center", borderBottom: i < items.length - 1 ? "1px solid #F9FAFB" : "none" }}>
+
+                        {/* ID Pesanan */}
                         <div style={{ fontSize: 13, fontWeight: 800, color: "#111827", textAlign: "center" }}>#{o.id}</div>
 
+                        {/* Profil Pelanggan */}
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", gap: 16 }}>
-                          <div style={{
-                            width: 34, height: 34, borderRadius: 8,
-                            background: "#FFA000", color: "#fff",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 11, fontWeight: 800, flexShrink: 0,
-                          }}>{o.initials}</div>
-                          <span style={{ fontSize: 13, color: "#111827", fontWeight: 500 }}>{o.customer}</span>
+                          <div style={{ width: 34, height: 34, borderRadius: 8, background: "#FFA000", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, flexShrink: 0 }}>
+                            {initials}
+                          </div>
+                          <span style={{ fontSize: 13, color: "#111827", fontWeight: 600 }}>{customerName}</span>
                         </div>
 
-                        <div style={{ fontSize: 13, color: "#6B7280", textAlign: "center" }}>{o.date}</div>
+                        {/* Info Armada */}
+                        <div style={{ fontSize: 13, color: "#4B5563", fontWeight: 700, textAlign: "center" }}>
+                          {o.jenisKendaraan || "Truck"}
+                        </div>
 
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                        {/* Dropdown Aksi */}
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
                           <button
                             onClick={() => navigate(`/invoice/${o.id}`)}
                             style={{
-                              background: "#FFA000", color: "#fff", border: "none",
-                              borderRadius: 6, padding: "6px 14px", height: 48,
-                              fontSize: 12, fontWeight: 700, cursor: "pointer",
-                              whiteSpace: "normal", lineHeight: 1.3, textAlign: "center",
-                              minWidth: 80,
-                            }}>
-                            Upload<br />Invoice
+                              background: o.urlInvoice ? "#10B981" : "#FFA000", color: "#fff", border: "none",
+                              borderRadius: 6, padding: "6px 14px", height: 48, fontSize: 11, fontWeight: 700,
+                              cursor: "pointer", lineHeight: 1.3, textAlign: "center", minWidth: 90,
+                            }}
+                          >
+                            {o.urlInvoice ? <>Invoice<br />Ready</> : <>Upload<br />Invoice</>}
                           </button>
 
                           <StatusDropdown
@@ -327,24 +339,17 @@ export default function StatusPengiriman() {
               </div>
             )}
 
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "12px 28px", background: "#FAFAFA", borderTop: "1px solid #F0F0F0",
-            }}>
-              <div style={{ fontSize: 11, color: "#9CA3AF" }}>
-                MENAMPILKAN {startIndex + 1}-{Math.min(startIndex + PAGE_SIZE, orders.length)} DARI {orders.length} TRANSAKSI
+            {/* Pagination Footer */}
+            <div style={{ display: "flex", alignItems: "center", justifyValue: "space-between", padding: "12px 28px", background: "#FAFAFA", borderTop: "1px solid #F0F0F0", justifyContent: "space-between" }}>
+              <div style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 600 }}>
+                MENAMPILKAN {startIndex + 1}-{Math.min(startIndex + PAGE_SIZE, orders.length)} DARI {orders.length} MANIFEST BERJALAN
               </div>
               <div style={{ display: "flex", gap: 6 }}>
                 {[
                   { label: "<", action: () => setPage((p) => Math.max(1, p - 1)), disabled: page === 1 },
                   { label: ">", action: () => setPage((p) => Math.min(totalPages, p + 1)), disabled: page === totalPages },
                 ].map((btn) => (
-                  <button key={btn.label} onClick={btn.action} disabled={btn.disabled} style={{
-                    width: 30, height: 30, border: "1px solid #E5E7EB", borderRadius: 6,
-                    background: "#fff", fontSize: 13, color: "#374151",
-                    cursor: btn.disabled ? "not-allowed" : "pointer",
-                    opacity: btn.disabled ? 0.4 : 1, fontFamily: "inherit",
-                  }}>{btn.label}</button>
+                  <button key={btn.label} onClick={btn.action} disabled={btn.disabled} style={{ width: 30, height: 30, border: "1px solid #E5E7EB", borderRadius: 6, background: "#fff", fontSize: 13, color: "#374151", cursor: btn.disabled ? "not-allowed" : "pointer", opacity: btn.disabled ? 0.4 : 1, fontFamily: "inherit" }}>{btn.label}</button>
                 ))}
               </div>
             </div>
@@ -357,10 +362,10 @@ export default function StatusPengiriman() {
               marginTop: 24, background: "#FFA000", color: "#fff", border: "none",
               borderRadius: 8, padding: "12px 28px", fontSize: 14, fontWeight: 700,
               cursor: saving || Object.keys(localStatuses).length === 0 ? "not-allowed" : "pointer",
-              opacity: Object.keys(localStatuses).length === 0 ? 0.5 : 1,
+              opacity: Object.keys(localStatuses).length === 0 ? 0.5 : 1, transition: "opacity 0.2s"
             }}
           >
-            {saving ? "Menyimpan..." : "Simpan Perubahan"}
+            {saving ? "Menyimpan ke PostgreSQL..." : "Simpan Perubahan"}
           </button>
         </main>
       </div>

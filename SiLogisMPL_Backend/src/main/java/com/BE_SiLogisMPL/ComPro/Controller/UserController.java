@@ -9,12 +9,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,8 +31,6 @@ import com.BE_SiLogisMPL.ComPro.Entity.User;
 import com.BE_SiLogisMPL.ComPro.Entity.UserNotifikasi;
 import com.BE_SiLogisMPL.ComPro.Service.UlasanService;
 import com.BE_SiLogisMPL.ComPro.Service.UserService;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("user")
@@ -127,14 +126,16 @@ public class UserController {
                                 .build();
         }
 
-        @PatchMapping("/admin/edit/companyprofile")
+        @PatchMapping(value = "/admin/edit/companyprofile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         @PreAuthorize("hasRole('ADMIN')")
-        public WebResponse<String> editCompanyProfile(@Valid @RequestBody CompanyProfileDTO companyProfileDTO,
+        public WebResponse<String> editCompanyProfile(
+                        @RequestPart(value = "fileGambar", required = false) MultipartFile file,
+                        @RequestPart(value = "companyProfile") CompanyProfileDTO companyProfileDTO,
                         Authentication authentication) {
                 org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
                                 .getPrincipal();
                 String username = userDetails.getUsername();
-                String token = userService.editCompanyProfile(companyProfileDTO, username);
+                String token = userService.editCompanyProfile(file, companyProfileDTO, username);
                 return WebResponse.<String>builder()
                                 .code(HttpStatus.OK.value())
                                 .status(HttpStatus.OK.getReasonPhrase())
@@ -158,7 +159,7 @@ public class UserController {
 
         @PatchMapping(value = "/admin/edit/profilepicture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         @PreAuthorize("hasRole('ADMIN')")
-        public WebResponse<String> editProfilePicture(@ModelAttribute MultipartFile file,
+        public WebResponse<String> editProfilePicture(@RequestParam("fileGambarOtomatis") MultipartFile file,
                         Authentication authentication) {
                 org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
                                 .getPrincipal();
