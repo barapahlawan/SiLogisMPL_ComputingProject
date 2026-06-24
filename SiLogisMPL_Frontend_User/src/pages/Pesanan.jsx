@@ -694,7 +694,7 @@ const PesananBerlangsungList = ({ orders, onReviewComplete }) => {
               <div className="flex gap-4 items-center mb-4">
                 <span className="font-bold text-gray-900 bg-gray-100 px-3 py-1 rounded text-sm">#{order?.orderNumber || "MPL-DEMO"}</span>
                 <span className="text-[11px] font-bold tracking-wider uppercase text-[#F5BC00] bg-[#F5BC00]/10 px-2 py-1 rounded">
-                  {order?.status === 'PENDING' ? 'VERIFIKASI' : order?.status === 'ONGOING' || order?.status === 'ACCEPT' || order?.status === 'Diproses' ? 'PENGANTARAN' : order?.status === 'COMPLETED' ? 'SELESAI' : order?.status}
+                  {order?.status === 'PENDING' ? 'VERIFIKASI' : order?.status === 'ONGOING' || order?.status === 'ACCEPT' || order?.status === 'Diproses' || order?.status === 'Dalam Perjalanan' || order?.status === 'Barang Diambil' ? 'PENGANTARAN' : (order?.status === 'COMPLETED' || order?.status === 'SELESAI' || order?.status === 'Tiba di Tujuan') ? 'MENUNGGU ULASAN' : order?.status}
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1266,11 +1266,27 @@ export default function App() {
     );
   }
 
-  // Filter Kategori Tab Berlangsung (Kecuali yang DONE/SELESAI)
-  const activeManifestOrders = orders.filter(o => o?.status !== "DONE" && o?.status !== "SELESAI");
+  // Filter Kategori Tab Berlangsung (Kecuali yang sudah ada ulasan)
+  const activeManifestOrders = orders.filter(o => {
+    const hasUlasan = Boolean(o?.ulasan);
+    const isCompletedStatus = o?.status === "DONE" || o?.status === "SELESAI" || o?.status === "COMPLETED" || o?.status === "Tiba di Tujuan" || o?.status === "ARRIVED";
+    
+    if (isCompletedStatus) {
+      // Jika status pesanan sudah selesai/tiba, TAHAN di pesanan berlangsung jika belum ada ulasan
+      return !hasUlasan;
+    }
+    // Jika belum selesai (Masih pending/ongoing), selalu tampil di pesanan berlangsung
+    return true;
+  });
 
-  // Filter Kategori Tab History (Hanya yang DONE/SELESAI)
-  const historyOrders = orders.filter(o => o?.status === "DONE" || o?.status === "SELESAI");
+  // Filter Kategori Tab History (Hanya yang sudah selesai DAN sudah diulas)
+  const historyOrders = orders.filter(o => {
+    const hasUlasan = Boolean(o?.ulasan);
+    const isCompletedStatus = o?.status === "DONE" || o?.status === "SELESAI" || o?.status === "COMPLETED" || o?.status === "Tiba di Tujuan" || o?.status === "ARRIVED";
+    
+    // Hanya masuk history jika sudah selesai DAN sudah diulas
+    return isCompletedStatus && hasUlasan;
+  });
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[#F5F7F9] flex flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
