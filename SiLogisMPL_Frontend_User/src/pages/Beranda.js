@@ -54,55 +54,68 @@ const DEFAULT_VEHICLES = [
   },
 ];
 
-const testimonials = [
-  {
-    stars: 5,
-    text: '"Sistem tracking yang sangat akurat. LOGIS-CORE membantu kami menekan biaya operasional distribusi hingga 20% dalam 6 bulan pertama."',
-    name: 'Budi Santoso',
-    role: 'Manajer Logistik, PT Maju Jaya',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    stars: 5,
-    text: '"Layanan armada yang sangat terawat dan pengemudi yang profesional. Sangat merekomendasikan untuk pengiriman barang industri berat."',
-    name: 'Siti Aminah',
-    role: 'Direktur Operasional, Global Tech',
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    stars: 5,
-    text: '"Integrasi API mereka sangat mulus dengan sistem inventori kami. Transparansi data yang diberikan benar-benar luar biasa."',
-    name: 'Andi Wijaya',
-    role: 'CTO, E-Logistics Indonesia',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face',
-  },
-];
-
 const Beranda = () => {
   const navigate = useNavigate();
   const [company, setCompany] = useState(null);
+  const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ── AMBIL DATA COMPANY PROFILE PUBLIK ──
+  // ── AMBIL DATA COMPANY PROFILE & ULASAN SEKALIGUS ──
   useEffect(() => {
-    const fetchCompanyProfile = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get("/user/companyprofile");
-        const resData = response.data?.data || response.data;
+        const [companyRes, ulasanRes] = await Promise.all([
+          api.get("/user/companyprofile").catch(() => null),
+          api.get("/user/view/ulasan").catch(() => null)
+        ]);
 
-        // Cek jika dibungkus nested object user -> companyProfile atau langsung di root data
-        const profileData = resData?.companyProfile || resData;
-        if (profileData) {
-          setCompany(profileData);
+        // Set Data Perusahaan
+        if (companyRes) {
+          const resData = companyRes.data?.data || companyRes.data;
+          const profileData = resData?.companyProfile || resData;
+          if (profileData) setCompany(profileData);
+        }
+
+        // Set Data Ulasan
+        if (ulasanRes) {
+          const resData = ulasanRes.data?.data || ulasanRes.data;
+          if (Array.isArray(resData)) {
+            // Filter ulasan dengan rating >= 4.0
+            const ulasanBerkualitas = resData.filter((item) => {
+              const dataUlasan = item.ulasan || item; // Mengatasi jika datanya langsung Ulasan atau masih Order
+              return dataUlasan && dataUlasan.rating >= 4.0;
+            });
+
+            // Mapping data untuk UI
+            const mappedUlasan = ulasanBerkualitas.map((item) => {
+              const dataUlasan = item.ulasan || item;
+              return {
+                stars: Math.round(dataUlasan.rating),
+                text: dataUlasan.komentar || 'Pelayanan logistik sangat memuaskan.',
+                name: dataUlasan.user?.username || 'Mitra Anonim',
+                role: dataUlasan.user?.userProfile?.jabatan || 'Mitra MPL',
+                company: dataUlasan.user?.userProfile?.perusahaan || 'Perusahaan Industri',
+                avatar: dataUlasan.user?.userProfile?.urlProfilePicture ||
+                  `https://ui-avatars.com/name=${dataUlasan.user?.username || 'M'}&background=1c2b38&color=fff`
+              };
+            });
+
+            // Acak urutan dan ambil 3 terbaik
+            const tigaUlasanRandom = mappedUlasan
+              .sort(() => 0.5 - Math.random())
+              .slice(0, 3);
+
+            setTestimonials(tigaUlasanRandom);
+          }
         }
       } catch (err) {
-        console.error("Gagal menjemput data profil publik:", err);
+        console.error("Gagal menjemput data beranda:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCompanyProfile();
+    fetchData();
   }, []);
 
   if (loading) {
@@ -113,6 +126,23 @@ const Beranda = () => {
       </div>
     );
   }
+
+  const displayData = testimonials.length > 0 ? testimonials : [
+    {
+      stars: 5,
+      text: "Pengiriman komponen manufaktur kami dari Sulawesi ke Sumsel berjalan sangat aman dan tepat waktu menggunakan armada truck terpercaya.",
+      name: "Rosalina",
+      role: "Manajer Logistik",
+      avatar: "https://ui-avatars.com/name=Rosalina&background=1c2b38&color=fff"
+    },
+    {
+      stars: 4,
+      text: "Sistem pelacakan manifes pengiriman sangat transparan. Notifikasi realtime-nya membantu kami mengoordinasikan tim bongkar muat dengan presisi.",
+      name: "Budiman",
+      role: "Head of Supply Chain",
+      avatar: "https://ui-avatars.com/name=Budiman&background=1c2b38&color=fff"
+    }
+  ];
 
   // Hero data — pakai dari backend jika ada, fallback ke default bawaan kamu
   const headline1 = company?.headlineBaris1 || 'MANDIRI';
@@ -459,23 +489,27 @@ const Beranda = () => {
             Apa Kata Mereka?
           </h2>
           <p className="font-['Inter',_sans-serif] text-neutral-500 max-w-2xl mx-auto mb-20 text-[18px] leading-relaxed">
-            Ribuan mitra industri telah mengandalkan efisiensi LOGIS-CORE untuk rantai pasokan mereka. Inilah pengalaman mereka.
+            Ribuan mitra industri telah mengandalkan efisiensi ekosistem Mandiri Perkasa untuk rantai pasokan mereka. Inilah pengalaman mereka.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16 text-left">
-            {testimonials.map((t, index) => (
-              <div key={index} className="flex flex-col">
+            {displayData.map((t, index) => (
+              <div key={index} className="flex flex-col bg-neutral-50 p-6 rounded-2xl border border-neutral-100 shadow-sm md:bg-transparent md:p-0 md:rounded-none md:border-none md:shadow-none">
                 <div className="flex gap-1.5 mb-6">
                   {[...Array(t.stars)].map((_, i) => (
-                    <Star key={i} size={24} className="text-[#F5BC00] fill-[#F5BC00]" />
+                    <Star key={i} size={20} className="text-[#F5BC00] fill-[#F5BC00]" />
                   ))}
                 </div>
-                <p className="font-['Inter',_sans-serif] text-[#111111] text-[16px] leading-relaxed mb-8 flex-grow">{t.text}</p>
-                <div className="flex items-center gap-4">
-                  <img src={t.avatar} alt={t.name} className="w-14 h-14 rounded-full object-cover" />
+                <p className="font-['Inter',_sans-serif] text-[#111111] text-[16px] leading-relaxed mb-8 flex-grow">
+                  "{t.text}"
+                </p>
+                <div className="flex items-center gap-4 border-t border-neutral-100 pt-4 md:border-none md:pt-0">
+                  <img src={t.avatar} alt={t.name} className="w-12 h-12 rounded-full object-cover shadow-inner" />
                   <div>
                     <div className="font-bold text-[15px] text-[#111111]">{t.name}</div>
-                    <div className="font-['Inter',_sans-serif] text-[13px] text-neutral-500 mt-0.5">{t.role}</div>
+                    <div className="font-['Inter',_sans-serif] text-[13px] text-neutral-500 mt-0.5">
+                      {t.role} {t.company ? `• ${t.company}` : ''}
+                    </div>
                   </div>
                 </div>
               </div>

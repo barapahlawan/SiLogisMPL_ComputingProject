@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.BE_SiLogisMPL.ComPro.DTO.OrderDTO;
+import com.BE_SiLogisMPL.ComPro.DTO.PengirimDTO;
 import com.BE_SiLogisMPL.ComPro.DTO.WebResponse;
 import com.BE_SiLogisMPL.ComPro.Entity.Order;
 import com.BE_SiLogisMPL.ComPro.Service.OrderService;
@@ -88,8 +89,8 @@ public class OrderController {
         @PatchMapping("/{id}/{status}")
         @PreAuthorize("hasRole('ADMIN')")
         public WebResponse<String> verifikasiPesanan(@PathVariable("id") Long id,
-                        @PathVariable("status") String status) {
-                String token = orderService.verifikasiPesanan(id, status);
+                        @PathVariable("status") String status, @RequestBody PengirimDTO pengirimDTO) {
+                String token = orderService.verifikasiPesanan(id, status, pengirimDTO);
                 return WebResponse.<String>builder()
                                 .code(HttpStatus.OK.value())
                                 .status(HttpStatus.OK.getReasonPhrase())

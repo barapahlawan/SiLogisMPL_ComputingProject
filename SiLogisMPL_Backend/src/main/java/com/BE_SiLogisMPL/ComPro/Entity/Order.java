@@ -49,6 +49,8 @@ public class Order {
     private String status;
     private String urlInvoice;
     private String statusPengiriman;
+    private String namaDriver;
+    private String platNomor;
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = true)
     @JsonIgnore

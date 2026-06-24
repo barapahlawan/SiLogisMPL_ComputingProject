@@ -13,7 +13,7 @@ export default function Ulasan() {
   // ── 1. GET DATA ULASAN DARI BACKEND ──
   const fetchReviews = async () => {
     try {
-      const response = await api.get("/admin/view/ulasan");
+      const response = await api.get("/user/admin/view/ulasan");
       const data = response.data?.data || response.data;
 
       if (Array.isArray(data)) {
@@ -38,7 +38,7 @@ export default function Ulasan() {
   const handleDelete = async (id) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus ulasan ini?')) {
       try {
-        await api.delete(`/admin/delete/ulasan/${id}`);
+        await api.delete(`/user/admin/delete/ulasan/${id}`);
         setReviews(reviews.filter(r => r.id !== id));
         toast.success("Ulasan berhasil dihapus");
       } catch (err) {
@@ -51,7 +51,7 @@ export default function Ulasan() {
   const handleReplyClick = (id) => {
     setReplyingId(id);
     const review = reviews.find(r => r.id === id);
-    setReplyText(review.reply || '');
+    setReplyText(review.balasan || '');
   };
 
   // ── 3. SIMPAN/KIRIM BALASAN (POST BY ID) ──
@@ -65,12 +65,12 @@ export default function Ulasan() {
     try {
       // Backend menerima payload balasan (bisa berupa teks mentah atau objek, sesuaikan dengan RequestBody)
       // Di sini kita kirim data objek text / request parameter sesuai standarmu
-      await api.post(`/admin/reply/ulasan/${id}`, {
-        reply: replyText
+      await api.post(`/user/admin/reply/ulasan/${id}`, {
+        balasan: replyText
       });
 
       // Update state secara lokal agar UI sinkron instan
-      setReviews(reviews.map(r => r.id === id ? { ...r, reply: replyText } : r));
+      setReviews(reviews.map(r => r.id === id ? { ...r, balasan: replyText } : r));
       setReplyingId(null);
       setReplyText('');
       toast.success("Balasan ulasan berhasil disimpan");
@@ -106,9 +106,10 @@ export default function Ulasan() {
           ) : (
             reviews.map(review => {
               // Menyelaraskan penamaan variabel jika backend mengembalikan nama field berbeda
-              const namaUser = review.name || review.username || "Pelanggan Anonim";
-              const jabatanUser = review.role || review.jabatan || "Pengguna Jasa";
-              const isiUlasan = review.text || review.isiUlasan || review.komentar;
+              const user = review.user || {};
+              const namaUser = user.username || "Pelanggan Anonim";
+              const jabatanUser = user.role || "Pengguna Jasa";
+              const isiUlasan = review.komentar;
               const tanggalUlasan = review.date || review.createdAt || review.tanggal || "Baru saja";
               const jumlahBintang = review.stars || review.rating || 5;
 
@@ -129,10 +130,10 @@ export default function Ulasan() {
                   <p className="text-gray-700 text-sm mb-6 leading-relaxed">{isiUlasan}</p>
 
                   {/* Tampilan Box Balasan Admin */}
-                  {review.reply && replyingId !== review.id && (
+                  {review.balasan && replyingId !== review.id && (
                     <div className="bg-white border-l-4 border-[#FFA000] p-4 rounded-r-xl mb-4 ml-4 shadow-sm">
                       <p className="text-xs font-bold text-gray-500 mb-1">Balasan Anda:</p>
-                      <p className="text-sm text-gray-800">{review.reply}</p>
+                      <p className="text-sm text-gray-800">{review.balasan}</p>
                     </div>
                   )}
 
@@ -171,7 +172,7 @@ export default function Ulasan() {
                   {replyingId !== review.id && (
                     <div className="flex items-center gap-4 pt-4 mt-4 border-t border-gray-200/60">
                       <button onClick={() => handleReplyClick(review.id)} className="flex items-center gap-1.5 text-xs font-bold text-green-600 hover:text-green-700 transition-colors">
-                        <Reply className="w-4 h-4" /> {review.reply ? "Edit Balasan" : "Balas"}
+                        <Reply className="w-4 h-4" /> {review.balasan ? "Edit Balasan" : "Balas"}
                       </button>
                       <button onClick={() => handleDelete(review.id)} className="flex items-center gap-1.5 text-xs font-bold text-red-600 hover:text-red-700 transition-colors">
                         <Trash2 className="w-4 h-4" /> Hapus

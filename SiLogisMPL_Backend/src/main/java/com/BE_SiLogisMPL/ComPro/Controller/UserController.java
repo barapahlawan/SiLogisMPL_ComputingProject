@@ -187,12 +187,8 @@ public class UserController {
         }
 
         @GetMapping("/companyprofile")
-        @PreAuthorize("hasRole('USER')")
-        public WebResponse<CompanyProfile> viewUserCompanyProfile(Authentication authentication) {
-                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
-                                .getPrincipal();
-                String username = userDetails.getUsername();
-                CompanyProfile token = userService.viewUserCompanyProfile(username);
+        public WebResponse<CompanyProfile> viewUserCompanyProfile() {
+                CompanyProfile token = userService.viewUserCompanyProfile();
                 return WebResponse.<CompanyProfile>builder()
                                 .code(HttpStatus.OK.value())
                                 .status(HttpStatus.OK.getReasonPhrase())
@@ -241,6 +237,7 @@ public class UserController {
         @PreAuthorize("hasRole('ADMIN')")
         public WebResponse<String> replyUlasan(Authentication authentication, @PathVariable Long ulasanId,
                         @RequestBody UlasanDTO ulasanDTO) {
+                System.out.println("Data diterima: " + ulasanDTO.getBalasan());
                 org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
                                 .getPrincipal();
                 String username = userDetails.getUsername();

@@ -529,7 +529,7 @@ const Pesanan = ({ onComplete, onBack }) => {
               <div className="absolute -left-[40px] top-1 w-6 h-6 border-[3px] border-[#F5BC00] bg-white rounded-full flex items-center justify-center z-10">
                 <div className="w-2 h-2 bg-[#F5BC00] rounded-full"></div>
               </div>
-              <p className="text-xs font-bold text-[#F5BC00] mb-2 tracking-wider uppercase">TITIK MUAT — JAKARTA UTARA</p>
+              <p className="text-xs font-bold text-[#F5BC00] mb-2 tracking-wider uppercase">TITIK MUAT</p>
               <h4 className="text-xl font-bold text-gray-900 mb-1">{formData.pengirimNama || 'Kawasan Industri Pulogadung'}</h4>
               <p className="text-base text-gray-500">{formData.pengirimAlamat || 'Blok C No. 12, Pergudangan Logistics, Jakarta 13920'}</p>
             </div>
@@ -538,7 +538,7 @@ const Pesanan = ({ onComplete, onBack }) => {
               <div className="absolute -left-[42px] top-1 w-7 h-7 bg-[#F5BC00] text-white flex items-center justify-center rounded-full z-10">
                 <MapPin className="w-4 h-4 text-white" fill="white" />
               </div>
-              <p className="text-xs font-bold text-[#F5BC00] mb-2 tracking-wider uppercase">TITIK BONGKAR — SURABAYA</p>
+              <p className="text-xs font-bold text-[#F5BC00] mb-2 tracking-wider uppercase">TITIK BONGKAR</p>
               <h4 className="text-xl font-bold text-gray-900 mb-1">{formData.penerimaNama || 'Margomulyo Permai'}</h4>
               <p className="text-base text-gray-500">{formData.penerimaAlamat || 'Jl. Greges Jaya II, Pergudangan B-14, Surabaya 60183'}</p>
             </div>
@@ -869,7 +869,7 @@ const PesananBerlangsung = ({ order, onReviewComplete }) => {
                 </div>
                 <div>
                   <p className="text-xs font-bold tracking-wider text-gray-400 mb-1">TUJUAN</p>
-                  <p className="font-bold text-gray-900">{order?.namaPenerima} - Samarinda</p>
+                  <p className="font-bold text-gray-900">{order?.namaPenerima}</p>
                 </div>
                 <div>
                   <p className="text-xs font-bold tracking-wider text-gray-400 mb-1">MUATAN</p>
@@ -889,11 +889,11 @@ const PesananBerlangsung = ({ order, onReviewComplete }) => {
                     <div className="flex gap-10">
                       <div>
                         <p className="text-[11px] font-bold tracking-wider text-gray-500 mb-1 uppercase">Nama Driver</p>
-                        <p className="text-xl font-bold text-gray-900">Budi Santoso</p>
+                        <p className="text-xl font-bold text-gray-900">{order?.namaDriver}</p>
                       </div>
                       <div>
                         <p className="text-[11px] font-bold tracking-wider text-gray-500 mb-1 uppercase">Plat Nomor</p>
-                        <p className="text-xl font-bold text-gray-900">B 9128 MPL</p>
+                        <p className="text-xl font-bold text-gray-900">{order?.platNomor}</p>
                       </div>
                     </div>
                     <div className="flex gap-3">
@@ -1270,7 +1270,7 @@ export default function App() {
   const activeManifestOrders = orders.filter(o => {
     const hasUlasan = Boolean(o?.ulasan);
     const isCompletedStatus = o?.status === "DONE" || o?.status === "SELESAI" || o?.status === "COMPLETED" || o?.status === "Tiba di Tujuan" || o?.status === "ARRIVED";
-    
+
     if (isCompletedStatus) {
       // Jika status pesanan sudah selesai/tiba, TAHAN di pesanan berlangsung jika belum ada ulasan
       return !hasUlasan;
@@ -1283,7 +1283,7 @@ export default function App() {
   const historyOrders = orders.filter(o => {
     const hasUlasan = Boolean(o?.ulasan);
     const isCompletedStatus = o?.status === "DONE" || o?.status === "SELESAI" || o?.status === "COMPLETED" || o?.status === "Tiba di Tujuan" || o?.status === "ARRIVED";
-    
+
     // Hanya masuk history jika sudah selesai DAN sudah diulas
     return isCompletedStatus && hasUlasan;
   });

@@ -33,11 +33,12 @@ export const DataProvider = ({ children }) => {
   const fetchCompany = useCallback(async () => {
     setCompanyLoading(true);
     try {
-      const token = localStorage.getItem("mpl_token");
-      const res = token
-        ? await api.get("/user/companyprofile").catch(() => api.get("/user/admin/companyprofile"))
-        : await api.get("/user/companyprofile");
-      const raw = res.data?.data || res.data;
+      // Coba fetch dari user, jika gagal (catch), coba dari admin
+      const res = await api.get("/user/companyprofile");
+
+      // Axios otomatis melakukan JSON.parse, jadi kita langsung ambil res.data.data
+      const raw = res.data?.data;
+
       if (raw) {
         setCompany(prev => ({
           ...prev,

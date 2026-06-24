@@ -36,6 +36,6 @@ public class UserNotifikasi {
     @JsonIgnore
     private User user;
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id", nullable = true)
     private Order order;
 }

@@ -1,5 +1,7 @@
 package com.BE_SiLogisMPL.ComPro.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +32,12 @@ public class UlasanService {
                 .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order tidak ditemukan"));
-
+        ZoneId zonaIndo = ZoneId.of("Asia/Jakarta");
+        LocalDateTime waktu = LocalDateTime.now(zonaIndo);
         Ulasan ulasan = Ulasan.builder()
                 .komentar(ulasanDTO.getKomentar())
                 .rating(ulasanDTO.getRating())
+                .createdAt(waktu)
                 .user(user)
                 .order(order)
                 .build();
@@ -57,7 +61,10 @@ public class UlasanService {
     public String replyUlasan(Long ulasanId, UlasanDTO ulasanDTO) {
         Ulasan ulasan = ulasanRepository.findById(ulasanId)
                 .orElseThrow(() -> new RuntimeException("Ulasan tidak ditemukan"));
+        ZoneId zonaIndo = ZoneId.of("Asia/Jakarta");
+        LocalDateTime waktu = LocalDateTime.now(zonaIndo);
         ulasan.setBalasan(ulasanDTO.getBalasan());
+        ulasan.setRepliedAt(waktu);
         ulasanRepository.save(ulasan);
         return "Balasan ditambahkan";
     }

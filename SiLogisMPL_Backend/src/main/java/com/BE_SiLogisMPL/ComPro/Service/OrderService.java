@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.BE_SiLogisMPL.ComPro.DTO.OrderDTO;
+import com.BE_SiLogisMPL.ComPro.DTO.PengirimDTO;
 import com.BE_SiLogisMPL.ComPro.Entity.Order;
 import com.BE_SiLogisMPL.ComPro.Entity.User;
 import com.BE_SiLogisMPL.ComPro.Entity.UserNotifikasi;
@@ -99,27 +100,32 @@ public class OrderService {
         return order;
     }
 
-    public String verifikasiPesanan(Long id, String status) {
+    public String verifikasiPesanan(Long id, String status, PengirimDTO pengirimDTO) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan"));
+
         if (!order.getStatus().equals("PENDING")) {
             throw new RuntimeException("Pesanan tidak meminta verifikasi");
         }
-        Order newOrder = order.toBuilder()
-                .id(null)
-                .ulasan(null)
-                .build();
+
+        // Update status pesanan yang ada (tidak membuat duplikat)
+        order.setNamaDriver(pengirimDTO.getNamaDriver());
+        order.setPlatNomor(pengirimDTO.getPlatNomor());
         order.setStatus(status);
         order.setStatusPengiriman("Diproses");
         orderRepository.save(order);
+
+        // Langsung gunakan objek 'order' yang asli untuk notifikasi
         User user = order.getUser();
         UserNotifikasi userNotifikasi = UserNotifikasi.builder()
                 .id(null)
                 .sudahDibaca(false)
-                .order(newOrder)
+                .order(order) // Gunakan objek 'order' asli, BUKAN 'newOrder'
                 .user(user)
                 .build();
+
         userNotifikasiRepository.save(userNotifikasi);
+
         return "Pesanan sudah diverifikasi";
     }
 

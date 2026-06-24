@@ -250,9 +250,7 @@ public class UserService {
         return notifikasis.isEmpty() ? null : notifikasis.get(0);
     }
 
-    public CompanyProfile viewUserCompanyProfile(String username) {
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
+    public CompanyProfile viewUserCompanyProfile() {
         CompanyProfile companyProfile = companyProfileRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("Company Profile tidak ditemukan"));
         return companyProfile;
