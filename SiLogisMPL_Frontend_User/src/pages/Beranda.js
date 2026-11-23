@@ -96,7 +96,7 @@ const Beranda = () => {
                 role: dataUlasan.user?.userProfile?.jabatan || 'Mitra MPL',
                 company: dataUlasan.user?.userProfile?.perusahaan || 'Perusahaan Industri',
                 avatar: dataUlasan.user?.userProfile?.urlProfilePicture ||
-                  `https://ui-avatars.com/name=${dataUlasan.user?.username || 'M'}&background=1c2b38&color=fff`
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(dataUlasan.user?.username || 'M')}&background=1c2b38&color=fff`
               };
             });
 
