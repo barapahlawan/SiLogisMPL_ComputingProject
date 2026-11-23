@@ -9,6 +9,23 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { api } from '../lib/api';
 
+// Kapasitas armada (sama dengan pilihan armada di langkah 3), dikirim sebagai `kapasitas` ke backend
+const KAPASITAS_ARMADA = { Pickup: 720, Truck: 4000, Fuso: 8000 };
+
+// Status pengiriman dari backend -> teks tampilan ("Dalam-Perjalanan" -> "Dalam Perjalanan")
+const labelStatusPengiriman = (status) => (status ? status.replace(/-/g, ' ') : 'Diproses');
+
+// Waktu pemesanan diambil dari nomor order: MPL-yyyyMMdd-HHmm... -> "24 Nov 2026, 08:15 WIB"
+const waktuDariNomorOrder = (orderNumber) => {
+  const m = /MPL-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})/.exec(orderNumber || '');
+  if (!m) return '-';
+  const [, y, mo, d, h, mi] = m;
+  const tanggal = new Date(Number(y), Number(mo) - 1, Number(d)).toLocaleDateString('id-ID', {
+    day: '2-digit', month: 'short', year: 'numeric',
+  });
+  return `${tanggal}, ${h}:${mi} WIB`;
+};
+
 const Pesanan = ({ onComplete, onBack }) => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -66,7 +83,7 @@ const Pesanan = ({ onComplete, onBack }) => {
         nomorTeleponPenerima: formData.penerimaTelp,
         jenisKendaraan: formData.kendaraan,
         tipe: "Reguler",
-        kapasitas: 50,
+        kapasitas: KAPASITAS_ARMADA[formData.kendaraan] || 0, // sesuai armada yang dipilih
         catatanTambahan: formData.catatan
       };
 
@@ -694,7 +711,7 @@ const PesananBerlangsungList = ({ orders, onReviewComplete }) => {
               <div className="flex gap-4 items-center mb-4">
                 <span className="font-bold text-gray-900 bg-gray-100 px-3 py-1 rounded text-sm">#{order?.orderNumber || "MPL-DEMO"}</span>
                 <span className="text-[11px] font-bold tracking-wider uppercase text-[#F5BC00] bg-[#F5BC00]/10 px-2 py-1 rounded">
-                  {order?.status === 'PENDING' ? 'VERIFIKASI' : order?.status === 'ONGOING' || order?.status === 'ACCEPT' || order?.status === 'Diproses' || order?.status === 'Dalam Perjalanan' || order?.status === 'Barang Diambil' ? 'PENGANTARAN' : (order?.status === 'COMPLETED' || order?.status === 'SELESAI' || order?.status === 'Tiba di Tujuan') ? 'MENUNGGU ULASAN' : order?.status}
+                  {order?.status === 'PENDING' ? 'VERIFIKASI' : order?.status === 'ONGOING' ? 'PENGANTARAN' : order?.status === 'DONE' ? 'MENUNGGU ULASAN' : order?.status}
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -752,7 +769,7 @@ const PesananBerlangsung = ({ order, onReviewComplete }) => {
       setShowReviewSuccess(true);
     } catch (error) {
       console.error(error);
-      toast.error("Gagal mengirim ulasan");
+      toast.error(error.response?.data?.errors || "Gagal mengirim ulasan");
     } finally {
       setIsSubmitting(false);
     }
@@ -799,11 +816,11 @@ const PesananBerlangsung = ({ order, onReviewComplete }) => {
                 <div className="space-y-5">
                   <div>
                     <p className="text-[10px] font-bold tracking-wider text-gray-500 mb-1 uppercase">Waktu Pemesanan</p>
-                    <p className="font-bold text-gray-900 text-sm">05 Sep 2024, 08:22 WIB</p>
+                    <p className="font-bold text-gray-900 text-sm">{waktuDariNomorOrder(order?.orderNumber)}</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-bold tracking-wider text-gray-500 mb-1 uppercase">Metode Layanan</p>
-                    <p className="font-bold text-gray-900 text-sm">Door-to-Door (Express)</p>
+                    <p className="font-bold text-gray-900 text-sm">{order?.tipe || "Reguler"}</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-bold tracking-wider text-gray-500 mb-1 uppercase">Status Saat Ini</p>
@@ -860,7 +877,7 @@ const PesananBerlangsung = ({ order, onReviewComplete }) => {
                 <div>
                   <p className="text-xs font-bold tracking-wider text-gray-400 mb-1">STATUS PENGIRIMAN</p>
                   <div className="inline-block bg-[#F5BC00]/10 text-[#F5BC00] border border-[#F5BC00]/20 px-3 py-1 rounded text-sm font-bold">
-                    {order?.statusPengiriman || "Diproses"}
+                    {labelStatusPengiriman(order?.statusPengiriman)}
                   </div>
                 </div>
                 <div>
@@ -927,7 +944,7 @@ const PesananBerlangsung = ({ order, onReviewComplete }) => {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-green-900 mb-1">Terima kasih telah menggunakan layanan kami</h3>
-                <p className="text-sm text-green-800">Logistik Anda telah terkirim pada 05 Sep 2024 pukul 14:20 WIB dan diterima oleh <span className="font-bold">Bp.Haris (Gudang B)</span></p>
+                <p className="text-sm text-green-800">Logistik Anda telah tiba di tujuan dan diterima oleh <span className="font-bold">{order?.picPenerima || order?.namaPenerima || "-"}</span></p>
               </div>
             </div>
 
