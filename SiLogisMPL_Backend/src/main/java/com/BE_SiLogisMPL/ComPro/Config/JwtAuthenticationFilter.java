@@ -37,8 +37,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String jwt = authHeader.substring(7);
-        String userEmail = jwtService.extractEmail(jwt); // Menggunakan fungsi baru dari JwtService
-
+        String userEmail;
+        try {
+            userEmail = jwtService.extractEmail(jwt);
+        } catch (io.jsonwebtoken.JwtException | IllegalArgumentException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write(
+                    "{\"code\":401,\"status\":\"UNAUTHORIZED\",\"data\":null,\"errors\":\"Sesi habis, silakan login kembali\"}");
+            return;
+        }
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             if (jwtService.isTokenValid(jwt, userEmail)) {
@@ -55,4 +63,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
 }
