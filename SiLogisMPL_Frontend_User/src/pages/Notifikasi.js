@@ -1,69 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Truck, CheckCircle2, Circle, Loader2 } from 'lucide-react';
-import { api } from '../lib/api';
+import { Bell, Truck, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNotifications } from '../contexts/NotificationContext';
+
+// Nilai status dari backend -> teks yang ditampilkan
+const LABEL_STATUS = {
+  'Diproses': 'Diproses',
+  'Barang-Diambil': 'Barang Diambil',
+  'Dalam-Perjalanan': 'Dalam Perjalanan',
+  'Tiba-di-Tujuan': 'Tiba di Tujuan',
+  'DONE': 'Selesai',
+  'ONGOING': 'Diproses',
+  'PENDING': 'Menunggu Verifikasi',
+};
+const labelStatus = (status) => LABEL_STATUS[status] || status || '-';
+const isStatusJalan = (status) => ['Diproses', 'Barang-Diambil', 'Dalam-Perjalanan', 'ONGOING'].includes(status);
+const isStatusSelesai = (status) => ['Tiba-di-Tujuan', 'DONE'].includes(status);
+
+// "2026-11-24T08:15:00" -> "24 Nov 2026, 08:15"
+const formatWaktu = (value) => {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
 
 const Notifikasi = () => {
-  const [notifications, setNotifications] = useState([]);
+  // Data diambil dari NotificationContext supaya angka badge di Navbar selalu sama dengan halaman ini
+  const { notifications, refreshNotifications, markAllAsRead: tandaiSemuaDibaca } = useNotifications();
   const [loading, setLoading] = useState(true);
 
-  // ── 1. AMBIL DATA NOTIFIKASI DARI BACKEND ──
+  // ── 1. AMBIL DATA NOTIFIKASI TERBARU DARI BACKEND ──
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const token = localStorage.getItem('mpl_token');
-        const response = await api.get('/user/notifikasi', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+    refreshNotifications().finally(() => setLoading(false));
+  }, [refreshNotifications]);
 
-        // Membongkar standard response JSON (response.data.data)
-        const resData = response.data?.data || response.data;
-
-        if (Array.isArray(resData)) {
-          setNotifications(resData);
-        } else if (resData && typeof resData === 'object') {
-          setNotifications([resData]);
-        }
-      } catch (err) {
-        console.error("Gagal menjemput data notifikasi:", err);
-        toast.error("Gagal memuat notifikasi dari server");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotifications();
-  }, []);
-
-  // ── 2. LOGIKA INTERAKSI LOKAL ──
+  // ── 2. LOGIKA INTERAKSI ──
   const unreadNotifs = notifications.filter(notif => !notif.isRead);
   const readNotifs = notifications.filter(notif => notif.isRead);
   const unreadCount = unreadNotifs.length;
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
-    toast.success("Semua notifikasi ditandai telah dibaca");
-  };
-
-  const renderIcon = (status) => {
-    switch (status) {
-      case 'Diproses':
-      case 'ONGOING':
-        return <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-[#F5BC00]"><Truck size={20} /></div>;
-      case 'Selesai':
-      case 'DONE':
-      case 'Terkirim':
-        return <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600"><CheckCircle2 size={20} /></div>;
-      default:
-        return <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600"><Bell size={20} /></div>;
+  const markAllAsRead = async () => {
+    try {
+      await tandaiSemuaDibaca(); // disimpan ke database
+      toast.success("Semua notifikasi ditandai telah dibaca");
+    } catch (err) {
+      toast.error(err.response?.data?.errors || "Gagal menandai notifikasi");
     }
   };
 
+  const renderIcon = (status) => {
+    if (isStatusJalan(status)) {
+      return <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-[#F5BC00]"><Truck size={20} /></div>;
+    }
+    if (isStatusSelesai(status)) {
+      return <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600"><CheckCircle2 size={20} /></div>;
+    }
+    return <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600"><Bell size={20} /></div>;
+  };
+
   const getStatusStyle = (status) => {
-    if (status === 'Diproses' || status === 'ONGOING') return 'text-[#F5BC00] bg-orange-50 border border-orange-200';
-    if (status === 'Selesai' || status === 'DONE' || status === 'Terkirim') return 'text-green-600 bg-green-50 border border-green-200';
+    if (isStatusJalan(status)) return 'text-[#F5BC00] bg-orange-50 border border-orange-200';
+    if (isStatusSelesai(status)) return 'text-green-600 bg-green-50 border border-green-200';
     return 'text-gray-600 bg-gray-100 border border-gray-200';
   };
 
@@ -137,8 +135,9 @@ const Notifikasi = () => {
                 {unreadNotifs.map(notif => {
                   // Ekstrak data order dari dalam object response BE
                   const orderData = notif?.order || {};
-                  const orderNum = orderData?.orderNumber || "MPL-MANIFEST";
-                  const statusPengiriman = orderData?.statusPengiriman || orderData?.status || "PENDING";
+                  const orderNum = orderData?.orderNumber || orderData?.id || "-";
+                  // Pakai status SAAT notifikasi dibuat; untuk notifikasi lama pakai status pesanan sekarang
+                  const statusPengiriman = notif?.statusSaatItu || orderData?.statusPengiriman || orderData?.status || "PENDING";
 
                   return (
                     <div key={notif.id} className="p-6 flex gap-4 hover:bg-gray-50 transition-colors bg-white relative">
@@ -151,17 +150,17 @@ const Notifikasi = () => {
                           <h3 className="font-bold text-gray-900 font-['Manrope',_sans-serif] text-base">
                             Pembaruan Status Manifest #{orderNum}
                           </h3>
-                          <span className="text-xs font-medium text-gray-400 whitespace-nowrap">Baru saja</span>
+                          <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{formatWaktu(notif?.createdAt) || "Baru saja"}</span>
                         </div>
 
                         <p className="text-sm text-gray-600 mb-4">
-                          Paket jenis <span className="font-semibold text-gray-900">"{orderData?.jenisPaket || '-'}"</span> tujuan <span className="font-semibold text-gray-900">{orderData?.alamatTujuan || '-'}</span> saat ini sedang dalam status <span className="text-[#F5BC00] font-medium">{statusPengiriman}</span>.
+                          Paket jenis <span className="font-semibold text-gray-900">"{orderData?.jenisPaket || '-'}"</span> tujuan <span className="font-semibold text-gray-900">{orderData?.alamatTujuan || '-'}</span> saat ini sedang dalam status <span className="text-[#F5BC00] font-medium">{labelStatus(statusPengiriman)}</span>.
                         </p>
 
                         <div className="flex flex-wrap items-center gap-2 mb-4">
                           <span className={`text-[11px] font-bold px-2 py-1 rounded-md flex items-center gap-1 ${getStatusStyle(statusPengiriman)}`}>
-                            {(statusPengiriman === 'Terkirim' || statusPengiriman === 'Selesai' || statusPengiriman === 'DONE') ? <CheckCircle2 size={12} /> : null}
-                            {statusPengiriman.toUpperCase()}
+                            {isStatusSelesai(statusPengiriman) ? <CheckCircle2 size={12} /> : null}
+                            {labelStatus(statusPengiriman).toUpperCase()}
                           </span>
                           {orderData?.jenisKendaraan && (
                             <span className="text-[11px] font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-md border border-gray-200">
@@ -191,8 +190,9 @@ const Notifikasi = () => {
               <div className="divide-y divide-gray-100">
                 {readNotifs.map(notif => {
                   const orderData = notif?.order || {};
-                  const orderNum = orderData?.orderNumber || "MPL-MANIFEST";
-                  const statusPengiriman = orderData?.statusPengiriman || orderData?.status || "PENDING";
+                  const orderNum = orderData?.orderNumber || orderData?.id || "-";
+                  // Pakai status SAAT notifikasi dibuat; untuk notifikasi lama pakai status pesanan sekarang
+                  const statusPengiriman = notif?.statusSaatItu || orderData?.statusPengiriman || orderData?.status || "PENDING";
 
                   return (
                     <div key={notif.id} className="p-6 flex gap-4 hover:bg-gray-50 transition-colors bg-white/60">
@@ -204,16 +204,16 @@ const Notifikasi = () => {
                           <h3 className="font-bold text-gray-900 font-['Manrope',_sans-serif] text-base">
                             Pembaruan Status Manifest #{orderNum}
                           </h3>
-                          <span className="text-xs font-medium text-gray-400 whitespace-nowrap">Sebelumnya</span>
+                          <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{formatWaktu(notif?.createdAt) || "Sebelumnya"}</span>
                         </div>
 
                         <p className="text-sm text-gray-600 mb-4">
-                          Paket jenis <span className="font-semibold text-gray-900">"{orderData?.jenisPaket || '-'}"</span> tujuan <span className="font-semibold text-gray-900">{orderData?.alamatTujuan || '-'}</span> saat ini sedang dalam status <span className="font-medium">{statusPengiriman}</span>.
+                          Paket jenis <span className="font-semibold text-gray-900">"{orderData?.jenisPaket || '-'}"</span> tujuan <span className="font-semibold text-gray-900">{orderData?.alamatTujuan || '-'}</span> saat ini sedang dalam status <span className="font-medium">{labelStatus(statusPengiriman)}</span>.
                         </p>
 
                         <div className="flex flex-wrap items-center gap-2">
                           <span className={`text-[11px] font-bold px-2 py-1 rounded-md ${getStatusStyle(statusPengiriman)}`}>
-                            {statusPengiriman.toUpperCase()}
+                            {labelStatus(statusPengiriman).toUpperCase()}
                           </span>
                           {orderData?.jenisKendaraan && (
                             <span className="text-[11px] font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-md border border-gray-200">
