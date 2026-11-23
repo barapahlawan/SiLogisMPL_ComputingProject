@@ -1,4 +1,6 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { api } from '../lib/api';
+import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext();
 
@@ -10,79 +12,61 @@ export const useNotifications = () => {
   return context;
 };
 
+// Ubah data notifikasi dari backend ke bentuk yang dipakai UI.
+// Backend memakai field `sudahDibaca`, UI memakai `isRead`.
+const normalisasi = (resData) => {
+  const list = Array.isArray(resData) ? resData : resData ? [resData] : [];
+  return list
+    .filter((n) => n?.order) // abaikan notifikasi kosong (tanpa pesanan)
+    .map((n) => ({ ...n, isRead: Boolean(n.sudahDibaca) }))
+    .sort((a, b) => b.id - a.id); // terbaru di atas
+};
+
 export const NotificationProvider = ({ children }) => {
-  const initialNotifications = [
-    {
-      id: 1,
-      type: 'delivery_update',
-      title: 'Pesanan #MPL-2024-0887 dalam perjalanan',
-      time: '2 jam lalu',
-      description: 'Kargo Anda kini dalam perjalanan menuju Bandung. Estimasi tiba 24 Mei 2024. Driver: Hendra S. - +62 812-0011-2233',
-      isRead: false,
-      status: 'Dalam Perjalanan',
-      truck: 'Truck Box - 3.500 kg',
-      buttons: ['Lacak Sekarang', 'Hubungi Driver']
-    },
-    {
-      id: 2,
-      type: 'delivery_success',
-      title: 'Pesanan #MPL-2024-0891 berhasil diterima',
-      time: '2 hari lalu',
-      description: 'Kargo Anda telah diterima di Surabaya pada 22 Mei 2024 pukul 14:32 WIB. Penerima: Rina W.',
-      isRead: false,
-      status: 'Terkirim',
-      truck: 'Fuso 8T - 7.200 kg',
-      location: 'Surabaya, Jawa Timur',
-      buttons: ['Lihat Detail']
-    },
-    {
-      id: 3,
-      type: 'delivery_update',
-      title: 'Pesanan #MPL-2024-0887 dalam perjalanan',
-      time: '2 hari lalu',
-      description: 'Kargo Anda kini dalam perjalanan menuju Bandung. Estimasi tiba 24 Mei 2024. Driver: Hendra S. - +62 812-0011-2233',
-      isRead: false,
-      status: 'Dalam Perjalanan',
-      truck: 'Truck Box - 3.500 kg',
-      buttons: ['Lacak Sekarang', 'Hubungi Driver']
-    },
-    {
-      id: 4,
-      type: 'delivery_success',
-      title: 'Pesanan #MPL-2024-0874 berhasil terkirim',
-      time: '14 Mei 2024',
-      description: 'Kargo Pickup 680 kg telah diterima di Semarang, Jawa Tengah.',
-      isRead: true,
-      status: 'Terkirim',
-      truck: 'Pickup - 680 kg',
-      buttons: []
-    },
-    {
-      id: 5,
-      type: 'system_update',
-      title: 'Pembaruan platform LOGIS-CORE',
-      time: '10 Mei 2024',
-      description: 'Fitur pelacakan real-time kini tersedia di portal Anda. Cek halaman Pesanan untuk melihat posisi kargo secara langsung.',
-      isRead: true,
-      status: 'Pembaruan Sistem',
-      buttons: []
+  const { user } = useAuth();
+  // Sebelumnya berisi 5 notifikasi contoh (hardcode) -> badge Navbar selalu menampilkan angka palsu
+  const [notifications, setNotifications] = useState([]);
+
+  const refreshNotifications = useCallback(async () => {
+    if (!localStorage.getItem('mpl_token')) {
+      setNotifications([]);
+      return;
     }
-  ];
+    try {
+      const response = await api.get('/user/notifikasi');
+      setNotifications(normalisasi(response.data?.data ?? response.data));
+    } catch (err) {
+      console.warn('Gagal memuat notifikasi:', err?.message);
+    }
+  }, []);
 
-  const [notifications, setNotifications] = useState(initialNotifications);
+  // Ambil saat login, lalu perbarui tiap 30 detik. Kosongkan saat logout.
+  useEffect(() => {
+    if (!user) {
+      setNotifications([]);
+      return undefined;
+    }
+    refreshNotifications();
+    const interval = setInterval(refreshNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [user, refreshNotifications]);
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+  // Simpan status "sudah dibaca" ke database
+  const markAllAsRead = async () => {
+    await api.patch('/user/notifikasi/read');
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true, sudahDibaca: true })));
   };
 
   const markAsRead = (id) => {
-    setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
   };
 
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, markAllAsRead, markAsRead }}>
+    <NotificationContext.Provider
+      value={{ notifications, unreadCount, markAllAsRead, markAsRead, refreshNotifications }}
+    >
       {children}
     </NotificationContext.Provider>
   );
