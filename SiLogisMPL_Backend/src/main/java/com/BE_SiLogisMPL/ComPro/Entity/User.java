@@ -36,6 +36,7 @@ public class User {
     private Long id;
     private String username;
     private String email;
+    @JsonIgnore 
     private String password;
     private String role;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -55,4 +56,5 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Ulasan> ulasan;
+
 }
