@@ -26,19 +26,29 @@ const Register = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      toast.error('Password minimal 6 karakter');
+    // Aturan sama dengan backend (DTO Register): username 8-20 karakter,
+    // password min. 8 karakter + huruf besar + huruf kecil + angka + karakter spesial
+    const username = formData.name.trim();
+    if (username.length < 8 || username.length > 20) {
+      toast.error('Nama pengguna harus 8 sampai 20 karakter');
+      return;
+    }
+
+    const polaPassword = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!.*_-]).{8,}$/;
+    if (!polaPassword.test(formData.password)) {
+      toast.error('Password minimal 8 karakter, serta harus mengandung angka, huruf besar, huruf kecil, dan karakter spesial');
       return;
     }
 
     try {
       setLoading(true);
       // TAMBAHKAN await DI SINI agar menunggu respon asli dari backend Spring Boot
-      const result = await register(formData.name, formData.email, formData.password, formData.confirmPassword);
+      const result = await register(username, formData.email, formData.password, formData.confirmPassword);
 
       if (result && result.success) {
-        toast.success('Registrasi berhasil! Selamat datang.');
-        setTimeout(() => navigate('/'), 1000);
+        // Register di backend tidak otomatis login -> arahkan ke halaman masuk
+        toast.success('Registrasi berhasil! Silakan masuk dengan akun baru Anda.');
+        setTimeout(() => navigate('/masuk'), 1000);
       } else {
         toast.error(result?.message || 'Registrasi gagal, silakan coba lagi.');
       }
