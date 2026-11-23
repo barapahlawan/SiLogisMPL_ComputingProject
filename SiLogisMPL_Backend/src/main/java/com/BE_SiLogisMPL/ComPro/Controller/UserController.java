@@ -1,6 +1,7 @@
 package com.BE_SiLogisMPL.ComPro.Controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -174,12 +175,26 @@ public class UserController {
 
         @GetMapping("/notifikasi")
         @PreAuthorize("hasRole('USER')")
-        public WebResponse<UserNotifikasi> viewNotifikasi(Authentication authentication) {
+        public WebResponse<List<UserNotifikasi>> viewNotifikasi(Authentication authentication) {
                 org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
                                 .getPrincipal();
                 String username = userDetails.getUsername();
-                UserNotifikasi token = userService.viewNotifikasi(username);
-                return WebResponse.<UserNotifikasi>builder()
+                List<UserNotifikasi> token = userService.viewNotifikasi(username);
+                return WebResponse.<List<UserNotifikasi>>builder()
+                                .code(HttpStatus.OK.value())
+                                .status(HttpStatus.OK.getReasonPhrase())
+                                .data(token)
+                                .build();
+        }
+
+        @PatchMapping("/notifikasi/read")
+        @PreAuthorize("hasRole('USER')")
+        public WebResponse<String> markNotifikasiRead(Authentication authentication) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
+                                .getPrincipal();
+                String username = userDetails.getUsername();
+                String token = userService.markNotifikasiRead(username);
+                return WebResponse.<String>builder()
                                 .code(HttpStatus.OK.value())
                                 .status(HttpStatus.OK.getReasonPhrase())
                                 .data(token)
@@ -211,11 +226,12 @@ public class UserController {
                                 .build();
         }
 
+        // PUBLIK (dipakai Beranda web customer, termasuk pengunjung yang belum login).
+        // Hanya mengirim data aman: tanpa email, password, no. telepon, NPWP, dan alamat customer.
         @GetMapping("/view/ulasan")
-        @PreAuthorize("hasRole('USER')")
-        public WebResponse<List<Ulasan>> viewUlasan() {
-                List<Ulasan> token = ulasanService.viewUlasan();
-                return WebResponse.<List<Ulasan>>builder()
+        public WebResponse<List<Map<String, Object>>> viewUlasan() {
+                List<Map<String, Object>> token = ulasanService.viewUlasanPublic();
+                return WebResponse.<List<Map<String, Object>>>builder()
                                 .code(HttpStatus.OK.value())
                                 .status(HttpStatus.OK.getReasonPhrase())
                                 .data(token)
@@ -237,7 +253,6 @@ public class UserController {
         @PreAuthorize("hasRole('ADMIN')")
         public WebResponse<String> replyUlasan(Authentication authentication, @PathVariable Long ulasanId,
                         @RequestBody UlasanDTO ulasanDTO) {
-                System.out.println("Data diterima: " + ulasanDTO.getBalasan());
                 org.springframework.security.core.userdetails.UserDetails userDetails = (org.springframework.security.core.userdetails.UserDetails) authentication
                                 .getPrincipal();
                 String username = userDetails.getUsername();
