@@ -1,8 +1,9 @@
 package com.BE_SiLogisMPL.ComPro.Entity;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -31,11 +32,22 @@ public class UserNotifikasi {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private boolean sudahDibaca;
+
+    // Status pengiriman SAAT notifikasi dibuat (supaya riwayat notifikasi tidak ikut berubah)
+    private String statusSaatItu;
+
+    // Waktu notifikasi dibuat (WIB)
+    private LocalDateTime createdAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
+    @ToString.Exclude
     private User user;
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+
+    // Tanpa cascade: menghapus notifikasi tidak boleh ikut menghapus pesanan
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id", nullable = true)
+    @ToString.Exclude
     private Order order;
 }
