@@ -39,7 +39,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         // Endpoint publik: login/register, profil perusahaan & ulasan (versi aman) untuk web customer
-                        .requestMatchers("/auth/login", "/auth/register", "/error").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/forgot-password", "/auth/verify-otp",
+                                "/auth/reset-password", "/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/user/companyprofile", "/user/view/ulasan").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
