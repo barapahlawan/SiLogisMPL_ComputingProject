@@ -3,6 +3,7 @@ package com.BE_SiLogisMPL.ComPro.Entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -50,6 +51,7 @@ public class Order {
     private String urlInvoice;
     private String statusPengiriman;
     private String namaDriver;
+    @Column(name = "plat_nomor_kendaraan")
     private String platNomor;
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = true)
