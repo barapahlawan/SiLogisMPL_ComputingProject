@@ -1,7 +1,9 @@
 package com.BE_SiLogisMPL.ComPro.Service;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,11 +49,17 @@ public class UserService {
     @Autowired
     private UserNotifikasiRepository userNotifikasiRepository;
 
-    public AdminDashboard viewDashboard() {
-        if (orderRepository.findAll().isEmpty()) {
-            throw new RuntimeException("Tidak ada pesanan");
-        }
+    // Company profile yang diedit admin = yang ditampilkan di web customer (selalu ID 1)
+    private CompanyProfile getCompanyProfileUtama() {
+        return companyProfileRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("Company Profile tidak ditemukan"));
+    }
 
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    public AdminDashboard viewDashboard() {
         return AdminDashboard.builder()
                 .pesananTertunda(orderRepository.findByStatus("PENDING").size())
                 .pengirimanBerjalan(orderRepository.findByStatus("ONGOING").size())
@@ -63,19 +71,18 @@ public class UserService {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
 
-        if (user.getUsername().equals(userProfileDTO.getUsername())) {
-            // Jika username yang diupdate sama dengan username saat ini, maka tidak perlu
-            // cek duplikasi
-        } else if (userRepository.existsByUsername(userProfileDTO.getUsername())) {
+        String usernameBaru = isBlank(userProfileDTO.getUsername()) ? user.getUsername()
+                : userProfileDTO.getUsername().trim();
+        String emailBaru = isBlank(userProfileDTO.getEmail()) ? user.getEmail()
+                : userProfileDTO.getEmail().trim();
+
+        if (!Objects.equals(user.getUsername(), usernameBaru) && userRepository.existsByUsername(usernameBaru)) {
             throw new RuntimeException("Username sudah dipakai");
         }
-
-        if (user.getEmail().equals(userProfileDTO.getEmail())) {
-            // Jika email yang diupdate sama dengan email saat ini, maka tidak perlu cek
-            // duplikasi
-        } else if (userRepository.existsByEmail(userProfileDTO.getEmail())) {
+        if (!Objects.equals(user.getEmail(), emailBaru) && userRepository.existsByEmail(emailBaru)) {
             throw new RuntimeException("Email sudah dipakai");
         }
+
         UserProfile userProfile;
         if (user.getUserProfile() == null) {
             userProfile = new UserProfile();
@@ -93,8 +100,8 @@ public class UserService {
 
         userProfileRepository.save(userProfile);
 
-        user.setUsername(userProfileDTO.getUsername());
-        user.setEmail(userProfileDTO.getEmail());
+        user.setUsername(usernameBaru);
+        user.setEmail(emailBaru);
 
         userRepository.save(user);
 
@@ -105,19 +112,16 @@ public class UserService {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
 
-        if (userRepository.existsByUsername(userProfileDTO.getUsername())) {
-            throw new RuntimeException("Username sudah dipakai");
+        UserProfile userProfile;
+        if (user.getUserProfile() == null) {
+            userProfile = new UserProfile();
+            userProfile.setUser(user);
+        } else {
+            userProfile = user.getUserProfile();
         }
 
-        if (userRepository.existsByEmail(userProfileDTO.getEmail())) {
-            throw new RuntimeException("Email sudah dipakai");
-        }
-
-        UserProfile userProfileUpdate = user.getUserProfile().toBuilder()
-                .Alamat(userProfileDTO.getAlamat())
-                .build();
-
-        userProfileRepository.save(userProfileUpdate);
+        userProfile.setAlamat(userProfileDTO.getAlamat());
+        userProfileRepository.save(userProfile);
 
         return "Profil sudah diperbarui";
     }
@@ -132,32 +136,32 @@ public class UserService {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
 
-        if (user.getUsername().equals(adminProfileDTO.getUsername())) {
-            // Jika username yang diupdate sama dengan username saat ini, maka tidak perlu
-            // cek duplikasi
-        } else if (userRepository.existsByUsername(adminProfileDTO.getUsername())) {
+        String usernameBaru = isBlank(adminProfileDTO.getUsername()) ? user.getUsername()
+                : adminProfileDTO.getUsername().trim();
+        String emailBaru = isBlank(adminProfileDTO.getEmail()) ? user.getEmail()
+                : adminProfileDTO.getEmail().trim();
+
+        if (!Objects.equals(user.getUsername(), usernameBaru) && userRepository.existsByUsername(usernameBaru)) {
             throw new RuntimeException("Username sudah dipakai");
         }
-
-        if (user.getEmail().equals(adminProfileDTO.getEmail())) {
-            // Jika email yang diupdate sama dengan email saat ini, maka tidak perlu cek
-            // duplikasi
-        } else if (userRepository.existsByEmail(adminProfileDTO.getEmail())) {
+        if (!Objects.equals(user.getEmail(), emailBaru) && userRepository.existsByEmail(emailBaru)) {
             throw new RuntimeException("Email sudah dipakai");
         }
 
-        AdminProfile adminProfileUpdate = user.getAdminProfile().toBuilder()
-                .noTelepon(adminProfileDTO.getNoTelepon())
-                .build();
+        AdminProfile adminProfile;
+        if (user.getAdminProfile() == null) {
+            adminProfile = new AdminProfile();
+            adminProfile.setUser(user);
+        } else {
+            adminProfile = user.getAdminProfile();
+        }
+        adminProfile.setNoTelepon(adminProfileDTO.getNoTelepon());
+        adminProfileRepository.save(adminProfile);
 
-        adminProfileRepository.save(adminProfileUpdate);
+        user.setUsername(usernameBaru);
+        user.setEmail(emailBaru);
+        userRepository.save(user);
 
-        User userUpdate = user.toBuilder()
-                .username(adminProfileDTO.getUsername())
-                .email(adminProfileDTO.getEmail())
-                .build();
-
-        userRepository.save(userUpdate);
         return "Profil sudah diperbarui";
     }
 
@@ -168,25 +172,20 @@ public class UserService {
     }
 
     public String editCompanyProfile(MultipartFile file, CompanyProfileDTO companyProfileDTO, String username) {
-        User user = userRepository.findByEmail(username)
+        userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
-        CompanyProfile companyProfile = user.getCompanyProfile();
+        CompanyProfile companyProfile = getCompanyProfileUtama();
+
         if (file != null && !file.isEmpty()) {
             try {
                 String urlImage = fileStorageService.uploadFile(file);
-                System.out.println(urlImage);
-                companyProfile.setUrlGambar(urlImage); // Langsung set ke entity companyProfile
-                System.out.println("outsave");
+                companyProfile.setUrlGambar(urlImage);
             } catch (IOException e) {
-                System.out.println("outgagal");
-                return e.getMessage();
+                throw new RuntimeException("Gagal mengunggah gambar: " + e.getMessage());
             }
-        } else {
-            // Jika frontend tidak mengirim file baru, pertahankan URL gambar yang lama
-            System.out.println("Tidak ada file baru yang diunggah, mempertahankan gambar lama.");
+        } else if (!isBlank(companyProfileDTO.getUrlGambar())) {
+            companyProfile.setUrlGambar(companyProfileDTO.getUrlGambar());
         }
-
-        System.out.println("out");
 
         companyProfile.setHeadlineBaris1(companyProfileDTO.getHeadlineBaris1());
         companyProfile.setHeadlineBaris2(companyProfileDTO.getHeadlineBaris2());
@@ -225,9 +224,9 @@ public class UserService {
     }
 
     public CompanyProfile viewAdminCompanyProfile(String username) {
-        User user = userRepository.findByEmail(username)
+        userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
-        return user.getCompanyProfile();
+        return getCompanyProfileUtama();
     }
 
     public String editProfilePicture(MultipartFile profilePicture, String username) {
@@ -235,25 +234,39 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
         try {
             String urlImage = fileStorageService.uploadFile(profilePicture);
-            user.getAdminProfile().setUrlProfilePicture(urlImage);
-            adminProfileRepository.save(user.getAdminProfile());
-            return "Profile picture sudah diperbarui";
+            AdminProfile adminProfile = user.getAdminProfile();
+            if (adminProfile == null) {
+                adminProfile = new AdminProfile();
+                adminProfile.setUser(user);
+            }
+            adminProfile.setUrlProfilePicture(urlImage);
+            adminProfileRepository.save(adminProfile);
+            return urlImage;
         } catch (IOException e) {
-            return e.getMessage();
+            throw new RuntimeException("Gagal mengunggah foto profil: " + e.getMessage());
         }
     }
 
-    public UserNotifikasi viewNotifikasi(String username) {
+    public List<UserNotifikasi> viewNotifikasi(String username) {
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
+        return userNotifikasiRepository.findByUser(user).stream()
+                .filter(n -> n.getOrder() != null)
+                .sorted(Comparator.comparing(UserNotifikasi::getId).reversed())
+                .toList();
+    }
+
+    public String markNotifikasiRead(String username) {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
         List<UserNotifikasi> notifikasis = userNotifikasiRepository.findByUser(user);
-        return notifikasis.isEmpty() ? null : notifikasis.get(0);
+        notifikasis.forEach(n -> n.setSudahDibaca(true));
+        userNotifikasiRepository.saveAll(notifikasis);
+        return "Semua notifikasi sudah dibaca";
     }
 
     public CompanyProfile viewUserCompanyProfile() {
-        CompanyProfile companyProfile = companyProfileRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Company Profile tidak ditemukan"));
-        return companyProfile;
+        return getCompanyProfileUtama();
     }
 
     public String editProfilePictureUser(MultipartFile profilePicture, String username) {
@@ -261,11 +274,16 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
         try {
             String urlImage = fileStorageService.uploadFile(profilePicture);
-            user.getUserProfile().setUrlProfilePicture(urlImage);
-            userProfileRepository.save(user.getUserProfile());
-            return "Profile picture sudah diperbarui";
+            UserProfile userProfile = user.getUserProfile();
+            if (userProfile == null) {
+                userProfile = new UserProfile();
+                userProfile.setUser(user);
+            }
+            userProfile.setUrlProfilePicture(urlImage);
+            userProfileRepository.save(userProfile);
+            return urlImage;
         } catch (IOException e) {
-            return e.getMessage();
+            throw new RuntimeException("Gagal mengunggah foto profil: " + e.getMessage());
         }
     }
 }
