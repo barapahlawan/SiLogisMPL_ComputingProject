@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ClipboardList, Truck, Loader2 } from "lucide-react";
-import { api } from "../lib/api"; // 🌟 Pastikan path axios/api helper kamu sudah benar
+import { api } from "../lib/api"; 
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 
@@ -18,7 +18,7 @@ export default function Dashboard() {
         const token = localStorage.getItem('mpl_token');
         if (!token) {
           toast.error("Sesi habis, silakan login kembali");
-          navigate("/masuk");
+          navigate("/login");
           return;
         }
 
@@ -53,16 +53,9 @@ export default function Dashboard() {
   }, [navigate]);
 
   // ── 2. HITUNG STATISTIK SECARA DINAMIS BERDASARKAN HASIL DATA API ──
-  const pending = orders.filter((o) => o?.status === "PENDING" || o?.status === "WAITING").length;
-
-  const ongoing = orders.filter(
-    (o) =>
-      o?.status === "ACCEPT" ||
-      o?.status === "ON_PROCESS" ||
-      o?.status === "ONGOING" ||
-      o?.statusPengiriman === "Dalam Perjalanan" ||
-      o?.status === "Diproses"
-  ).length;
+  // Status yang dipakai backend: PENDING (menunggu verifikasi), ONGOING (dikirim), DONE (selesai)
+  const pending = orders.filter((o) => o?.status === "PENDING").length;
+  const ongoing = orders.filter((o) => o?.status === "ONGOING").length;
 
   // ── 3. AMBIL 3 DATA PESANAN PALING TERBARU (DIBALIK DARI YANG TERAKHIR MASUK) ──
   const recent = Array.isArray(orders) ? [...orders].reverse().slice(0, 3) : [];
