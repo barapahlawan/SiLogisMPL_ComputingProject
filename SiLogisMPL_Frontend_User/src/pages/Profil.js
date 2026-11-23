@@ -11,6 +11,8 @@ const Profil = () => {
   const { user, setUser } = useAuth();
   const [profileImg, setProfileImg] = useState(null);
   const fileInputRef = useRef(null);
+  // Alamat ke-2 dst. dari database (form hanya menampilkan alamat pertama)
+  const alamatLainRef = useRef([]);
 
   // State untuk data formulir (Diselaraskan dengan model gambar backend kamu)
   const [formData, setFormData] = useState({
@@ -65,8 +67,10 @@ const Profil = () => {
 
         if (profileData) {
           // Ekstrak objek alamat pertama dari List<Map<String, String>> Alamat
-          const alamatList = profileData.Alamat || profileData.userProfile?.Alamat || [];
+          // Backend (Jackson) mengirim field ini sebagai "alamat" (huruf kecil); "Alamat" untuk jaga-jaga
+          const alamatList = profileData.userProfile?.alamat || profileData.userProfile?.Alamat || profileData.Alamat || [];
           const alamatUtama = Array.isArray(alamatList) && alamatList.length > 0 ? alamatList[0] : {};
+          alamatLainRef.current = Array.isArray(alamatList) ? alamatList.slice(1) : [];
 
           setFormData({
             username: profileData.username || profileData.name || '',
@@ -151,6 +155,15 @@ const Profil = () => {
     try {
       const token = localStorage.getItem('mpl_token');
 
+      // Alamat pertama diperbarui dari form, alamat lain (jika ada) tetap dipertahankan
+      const alamatBaru = {
+        alamat: formData.alamat,
+        kota: formData.kota,
+        provinsi: formData.provinsi,
+        kodePos: formData.kodePos
+      };
+      const daftarAlamat = [alamatBaru, ...alamatLainRef.current];
+
       // Membangun payload beraliansi List<Map<String, String>> Alamat
       const payload = {
         username: formData.username,
@@ -160,15 +173,9 @@ const Profil = () => {
         jabatan: formData.jabatan,
         npwpPerusahaan: formData.npwpPerusahaan,
         industri: formData.industri,
-        // Alamat dibungkus ke dalam format array list map sesuai kemauan backend Java kamu
-        Alamat: [
-          {
-            alamat: formData.alamat,
-            kota: formData.kota,
-            provinsi: formData.provinsi,
-            kodePos: formData.kodePos
-          }
-        ]
+        // Field `Alamat` di backend dibaca Jackson lewat setAlamat() -> nama key JSON-nya "alamat" (huruf kecil).
+        // Key "Alamat" (huruf besar) sebelumnya diabaikan backend, jadi alamat tidak pernah tersimpan.
+        alamat: daftarAlamat
       };
 
       await api.patch('/user/edit/profile', payload, {
