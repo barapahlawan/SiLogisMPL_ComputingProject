@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.BE_SiLogisMPL.ComPro.DTO.UlasanDTO;
 import com.BE_SiLogisMPL.ComPro.Entity.Order;
@@ -30,7 +31,7 @@ public class UlasanService {
     @Autowired
     private UlasanRepository ulasanRepository;
 
-        public String createUlasan(String username, Long orderId, UlasanDTO ulasanDTO) {
+    public String createUlasan(String username, Long orderId, UlasanDTO ulasanDTO) {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
         Order order = orderRepository.findById(orderId)
@@ -91,9 +92,16 @@ public class UlasanService {
         }).toList();
     }
 
+    @Transactional
     public String deleteUlasan(Long ulasanId) {
         Ulasan ulasan = ulasanRepository.findById(ulasanId)
                 .orElseThrow(() -> new RuntimeException("Ulasan tidak ditemukan"));
+        // Lepas dulu relasi dari Order (cascade ALL) supaya ulasan benar-benar terhapus
+        Order order = ulasan.getOrder();
+        if (order != null) {
+            order.setUlasan(null);
+            orderRepository.save(order);
+        }
         ulasanRepository.delete(ulasan);
         return "Ulasan dihapus";
     }
