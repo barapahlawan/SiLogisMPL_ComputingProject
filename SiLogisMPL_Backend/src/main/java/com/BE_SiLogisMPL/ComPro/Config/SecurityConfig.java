@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,9 +38,25 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/login/**", "/error", "/user/companyprofile", "/user/view/ulasan")
-                        .permitAll()
+                        // Endpoint publik: login/register, profil perusahaan & ulasan (versi aman) untuk web customer
+                        .requestMatchers("/auth/login", "/auth/register", "/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/user/companyprofile", "/user/view/ulasan").permitAll()
                         .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex
+                        // Belum login / token tidak valid / token kedaluwarsa -> 401
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(401);
+                            response.setContentType("application/json");
+                            response.getWriter().write(
+                                    "{\"code\":401,\"status\":\"UNAUTHORIZED\",\"data\":null,\"errors\":\"Sesi habis, silakan login kembali\"}");
+                        })
+                        // Sudah login tapi role tidak sesuai -> 403
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(403);
+                            response.setContentType("application/json");
+                            response.getWriter().write(
+                                    "{\"code\":403,\"status\":\"FORBIDDEN\",\"data\":null,\"errors\":\"Anda tidak memiliki akses ke fitur ini\"}");
+                        }))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
