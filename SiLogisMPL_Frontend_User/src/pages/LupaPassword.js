@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Mail, Lock, Eye, EyeOff, KeyRound, ArrowRight } from 'lucide-react';
+import { api } from '../lib/api';
+
+// Aturan password sama dengan backend (Register & reset password)
+const POLA_PASSWORD = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!.*_-]).{8,}$/;
+const pesanError = (err, cadangan) => err?.response?.data?.errors || cadangan;
 
 const LupaPassword = () => {
   const navigate = useNavigate();
@@ -14,16 +19,35 @@ const LupaPassword = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleEmailSubmit = (e) => {
+  // Step 1: minta backend mengirim OTP ke email
+  const kirimOtp = async () => {
+    setLoading(true);
+    try {
+      await api.post('/auth/forgot-password', { email: email.trim() });
+      toast.success('Kode verifikasi telah dikirim ke email Anda');
+      return true;
+    } catch (err) {
+      toast.error(pesanError(err, 'Gagal mengirim kode verifikasi'));
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     if (!email) {
       toast.error('Silakan masukkan email Anda');
       return;
     }
-    // Simulate sending OTP
-    toast.success('Kode verifikasi telah dikirim ke email Anda');
-    setStep(2);
+    const terkirim = await kirimOtp();
+    if (terkirim) {
+      setOtp(['', '', '', '']);
+      setStep(2);
+    }
   };
 
   const handleOtpChange = (index, value) => {
@@ -39,32 +63,58 @@ const LupaPassword = () => {
     }
   };
 
-  const handleOtpSubmit = (e) => {
+  // Step 2: cek OTP ke backend
+  const handleOtpSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     if (otp.join('').length < 4) {
       toast.error('Masukkan 4 digit kode verifikasi');
       return;
     }
-    toast.success('Verifikasi berhasil');
-    setStep(3);
+    setLoading(true);
+    try {
+      await api.post('/auth/verify-otp', { email: email.trim(), otp: otp.join('') });
+      toast.success('Verifikasi berhasil');
+      setStep(3);
+    } catch (err) {
+      toast.error(pesanError(err, 'Kode verifikasi salah'));
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handlePasswordSubmit = (e) => {
+  // Step 3: simpan password baru (OTP dikirim lagi untuk dicek backend)
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    if (passwords.newPassword.length < 6) {
-      toast.error('Kata sandi minimal 6 karakter');
+    if (loading) return;
+    if (!POLA_PASSWORD.test(passwords.newPassword)) {
+      toast.error('Kata sandi minimal 8 karakter, serta harus mengandung angka, huruf besar, huruf kecil, dan karakter spesial');
       return;
     }
     if (passwords.newPassword !== passwords.confirmPassword) {
       toast.error('Kata sandi dan konfirmasi tidak cocok');
       return;
     }
-    
-    // Simulate password reset success
-    toast.success('Kata sandi berhasil diubah! Silakan masuk kembali.');
-    setTimeout(() => {
-      navigate('/masuk');
-    }, 1500);
+
+    setLoading(true);
+    try {
+      await api.post('/auth/reset-password', {
+        email: email.trim(),
+        otp: otp.join(''),
+        newPassword: passwords.newPassword,
+      });
+      toast.success('Kata sandi berhasil diubah! Silakan masuk kembali.');
+      setTimeout(() => {
+        navigate('/masuk');
+      }, 1500);
+    } catch (err) {
+      toast.error(pesanError(err, 'Gagal mengubah kata sandi'));
+      // OTP hangus/salah -> kembali ke langkah verifikasi
+      const pesan = pesanError(err, '');
+      if (/OTP|kode/i.test(pesan)) setStep(2);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -188,7 +238,11 @@ const LupaPassword = () => {
                 <p className="text-sm text-gray-400">
                   Belum menerima kode?{' '}
                   <button 
-                    onClick={() => toast.success('Kode verifikasi baru telah dikirim')}
+                    type="button"
+                    onClick={async () => {
+                      if (loading) return;
+                      if (await kirimOtp()) setOtp(['', '', '', '']);
+                    }}
                     className="text-[#F5BC00] hover:underline font-semibold"
                   >
                     Kirim Ulang
@@ -226,7 +280,7 @@ const LupaPassword = () => {
                       value={passwords.newPassword}
                       onChange={(e) => setPasswords({...passwords, newPassword: e.target.value})}
                       className="w-full pl-8 pr-10 py-2 bg-transparent text-white text-sm placeholder-gray-500 border-b border-gray-600 focus:outline-none focus:border-[#F5BC00] transition-colors font-['Inter',_sans-serif]"
-                      placeholder="Minimal 6 karakter"
+                      placeholder="Min. 8 karakter: A-Z, a-z, 0-9, simbol"
                     />
                     <button
                       type="button"
