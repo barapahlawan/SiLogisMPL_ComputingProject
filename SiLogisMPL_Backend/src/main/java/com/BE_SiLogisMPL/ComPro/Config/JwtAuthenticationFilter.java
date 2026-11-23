@@ -1,4 +1,4 @@
-package com.BE_SiLogisMPL.ComPro.Config; // Sesuaikan package kamu
+package com.BE_SiLogisMPL.ComPro.Config;
 
 import java.io.IOException;
 import java.util.List;
@@ -37,19 +37,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String jwt = authHeader.substring(7);
-        String userEmail;
         try {
-            userEmail = jwtService.extractEmail(jwt);
-        } catch (io.jsonwebtoken.JwtException | IllegalArgumentException e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write(
-                    "{\"code\":401,\"status\":\"UNAUTHORIZED\",\"data\":null,\"errors\":\"Sesi habis, silakan login kembali\"}");
-            return;
-        }
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            String userEmail = jwtService.extractEmail(jwt);
 
-            if (jwtService.isTokenValid(jwt, userEmail)) {
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null
+                    && jwtService.isTokenValid(jwt, userEmail)) {
                 String role = jwtService.extractClaim(jwt, claims -> claims.get("role", String.class));
                 List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
                 UserDetails userDetails = User.withUsername(userEmail).password("").authorities(authorities).build();
@@ -57,8 +49,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-
             }
+        } catch (io.jsonwebtoken.JwtException | IllegalArgumentException e) {
+            // Token rusak / kedaluwarsa: lanjut sebagai tamu.
+            // - Endpoint publik (login, register, company profile) tetap bisa dipakai.
+            // - Endpoint yang butuh login otomatis dijawab 401 oleh SecurityConfig.
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);
