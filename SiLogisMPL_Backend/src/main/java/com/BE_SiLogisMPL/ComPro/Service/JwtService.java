@@ -17,7 +17,8 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "KicauKicauKicauManiaAdalahKunciDariAplikasiIni67676767";
+    @org.springframework.beans.factory.annotation.Value("${jwt.secret}")
+    private String secretKey;
     private static final long JWT_EXPIRATION = 86400000;
 
     public String generateToken(User user) {
@@ -66,4 +67,5 @@ public class JwtService {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
 }
