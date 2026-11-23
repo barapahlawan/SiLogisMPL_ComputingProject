@@ -30,13 +30,26 @@ public class UlasanService {
     @Autowired
     private UlasanRepository ulasanRepository;
 
-    public String createUlasan(String username, Long orderId, UlasanDTO ulasanDTO) {
+        public String createUlasan(String username, Long orderId, UlasanDTO ulasanDTO) {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order tidak ditemukan"));
-        ZoneId zonaIndo = ZoneId.of("Asia/Jakarta");
-        LocalDateTime waktu = LocalDateTime.now(zonaIndo);
+
+        if (order.getUser() == null || !order.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Pesanan ini bukan milik Anda");
+        }
+        if (!"DONE".equals(order.getStatus())) {
+            throw new RuntimeException("Ulasan hanya bisa diberikan setelah pesanan selesai");
+        }
+        if (order.getUlasan() != null) {
+            throw new RuntimeException("Pesanan ini sudah diulas");
+        }
+        if (ulasanDTO.getRating() == null || ulasanDTO.getRating() < 1 || ulasanDTO.getRating() > 5) {
+            throw new RuntimeException("Rating harus antara 1 sampai 5");
+        }
+
+        LocalDateTime waktu = LocalDateTime.now(ZoneId.of("Asia/Jakarta"));
         Ulasan ulasan = Ulasan.builder()
                 .komentar(ulasanDTO.getKomentar())
                 .rating(ulasanDTO.getRating())
@@ -44,9 +57,7 @@ public class UlasanService {
                 .user(user)
                 .order(order)
                 .build();
-
         ulasanRepository.save(ulasan);
-
         return "Ulasan terbuat";
     }
 
