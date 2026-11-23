@@ -21,9 +21,18 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem('mpl_user');
     const token = localStorage.getItem('mpl_token');
     if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('mpl_user');
+      }
     }
     setLoading(false);
+
+    // Dipanggil dari lib/api.js saat backend menjawab 401 (token habis/tidak valid)
+    const handleForcedLogout = () => setUser(null);
+    window.addEventListener('mpl:logout', handleForcedLogout);
+    return () => window.removeEventListener('mpl:logout', handleForcedLogout);
   }, []);
 
   // ========================================================
@@ -49,16 +58,23 @@ export const AuthProvider = ({ children }) => {
         return { success: false, ok: false, message: 'Login gagal: token tidak diterima' };
       }
 
-      // Decode JWT payload untuk ambil role
-      let userData = { email, role: 'USER' };
+      // Decode JWT payload (format base64url) untuk ambil role
+      let payload = {};
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        userData = {
-          email: payload.sub || email,
-          name: payload.username || email,
-          role: payload.role || 'USER',
-        };
+        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        payload = JSON.parse(atob(base64));
       } catch {}
+
+      // Web customer hanya untuk akun USER (akun admin login di panel admin)
+      if (payload.role && payload.role !== 'USER') {
+        return { success: false, ok: false, message: 'Akun admin hanya bisa login di panel admin' };
+      }
+
+      const userData = {
+        email: payload.sub || email,
+        name: payload.username || email,
+        role: payload.role || 'USER',
+      };
 
       localStorage.setItem('mpl_token', token);
       localStorage.setItem('mpl_user', JSON.stringify(userData));
@@ -105,8 +121,17 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('mpl_user');
   };
 
+  // Dipakai halaman Profil: update data user sekaligus simpan ke localStorage (tidak hilang saat refresh)
+  const updateUser = (updater) => {
+    setUser((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      if (next) localStorage.setItem('mpl_user', JSON.stringify(next));
+      return next;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, setUser: updateUser, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
