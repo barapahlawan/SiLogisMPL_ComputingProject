@@ -2,8 +2,11 @@ package com.BE_SiLogisMPL.ComPro.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,14 +36,30 @@ public class OrderService {
     @Autowired
     private UserNotifikasiRepository userNotifikasiRepository;
 
+    private static final ZoneId WIB = ZoneId.of("Asia/Jakarta");
+
+    private static final Set<String> STATUS_PENGIRIMAN_VALID =
+            Set.of("Diproses", "Barang-Diambil", "Dalam-Perjalanan", "Tiba-di-Tujuan");
+
     public String generateOrderNumber() {
-        LocalDateTime timeNow = LocalDateTime.now();
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        String datePart = timeNow.format(dateFormatter);
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HHmm");
-        String timePart = timeNow.format(timeFormatter);
-        String orderNumber = String.format("MPL-%s-%s", datePart, timePart);
-        return orderNumber;
+        LocalDateTime timeNow = LocalDateTime.now(WIB);
+        String datePart = timeNow.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String timePart = timeNow.format(DateTimeFormatter.ofPattern("HHmmss"));
+        int acak = ThreadLocalRandom.current().nextInt(100, 1000);
+        return String.format("MPL-%s-%s-%d", datePart, timePart, acak);
+    }
+
+    private void buatNotifikasi(Order order) {
+        if (order.getUser() == null) {
+            return;
+        }
+        UserNotifikasi userNotifikasi = new UserNotifikasi();
+        userNotifikasi.setSudahDibaca(false);
+        userNotifikasi.setOrder(order);
+        userNotifikasi.setUser(order.getUser());
+        userNotifikasi.setStatusSaatItu("DONE".equals(order.getStatus()) ? "DONE" : order.getStatusPengiriman());
+        userNotifikasi.setCreatedAt(LocalDateTime.now(WIB));
+        userNotifikasiRepository.save(userNotifikasi);
     }
 
     public String createOrder(OrderDTO orderDTO, String username) {
@@ -74,24 +93,13 @@ public class OrderService {
     public List<Order> viewOrder(String username, String status) {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
-        List<Order> order = orderRepository.findByUserAndStatus(user, status);
-        if (order.isEmpty()) {
-            throw new RuntimeException("Pesanan yang sedang dilakukan tidak ditemukan");
-        }
-        return order;
+        return orderRepository.findByUserAndStatus(user, status);
     }
 
     public List<Order> viewAllOrder(String username) {
-        // 1. Cari user berdasarkan email/username
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Username tidak ditemukan"));
-
-        // 2. Ambil semua data pesanan dalam bentuk List
-        List<Order> orders = orderRepository.findByUser(user);
-
-        // 3. Langsung return list-nya (bisa berisi data, atau kosong [] jika belum
-        // pernah order)
-        return orders;
+        return orderRepository.findByUser(user);
     }
 
     public Order detailPesanan(Long id) {
@@ -101,85 +109,77 @@ public class OrderService {
     }
 
     public String verifikasiPesanan(Long id, String status, PengirimDTO pengirimDTO) {
+        if (!"ONGOING".equals(status)) {
+            throw new RuntimeException("Status verifikasi tidak valid");
+        }
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan"));
 
-        if (!order.getStatus().equals("PENDING")) {
+        if (!"PENDING".equals(order.getStatus())) {
             throw new RuntimeException("Pesanan tidak meminta verifikasi");
         }
+        if (pengirimDTO == null || pengirimDTO.getNamaDriver() == null || pengirimDTO.getNamaDriver().isBlank()
+                || pengirimDTO.getPlatNomor() == null || pengirimDTO.getPlatNomor().isBlank()) {
+            throw new RuntimeException("Nama driver dan plat nomor wajib diisi");
+        }
 
-        // Update status pesanan yang ada (tidak membuat duplikat)
         order.setNamaDriver(pengirimDTO.getNamaDriver());
         order.setPlatNomor(pengirimDTO.getPlatNomor());
         order.setStatus(status);
         order.setStatusPengiriman("Diproses");
         orderRepository.save(order);
 
-        // Langsung gunakan objek 'order' yang asli untuk notifikasi
-        User user = order.getUser();
-        UserNotifikasi userNotifikasi = UserNotifikasi.builder()
-                .id(null)
-                .sudahDibaca(false)
-                .order(order) // Gunakan objek 'order' asli, BUKAN 'newOrder'
-                .user(user)
-                .build();
-
-        userNotifikasiRepository.save(userNotifikasi);
+        buatNotifikasi(order);
 
         return "Pesanan sudah diverifikasi";
     }
 
     public String updateStatusPengiriman(Long id, String statusPengiriman) {
+        if (!STATUS_PENGIRIMAN_VALID.contains(statusPengiriman)) {
+            throw new RuntimeException("Status pengiriman tidak valid: " + statusPengiriman);
+        }
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan"));
-        if (statusPengiriman.equals("Tiba-di-Tujuan") && order.getUrlInvoice() != null) {
-            order.setStatus("DONE");
-        } else if (!order.getStatus().equals("ONGOING")) {
+        if (!"ONGOING".equals(order.getStatus())) {
             throw new RuntimeException("Pesanan tidak sedang diproses");
         }
+
         order.setStatusPengiriman(statusPengiriman);
-        orderRepository.save(order); // Simpan perubahan status order utama
+        if ("Tiba-di-Tujuan".equals(statusPengiriman) && order.getUrlInvoice() != null) {
+            order.setStatus("DONE");
+        }
+        orderRepository.save(order);
 
-        // 3. AMBIL USER PEMILIK ORDER
-        User user = order.getUser();
-
-        // 4. BUAT NOTIFIKASI BARU (LANGSUNG IKAT KE ORDER ASLI)
-        UserNotifikasi userNotifikasi = new UserNotifikasi();
-        userNotifikasi.setId(null); // Set null agar digenerate otomatis oleh database
-        userNotifikasi.setSudahDibaca(false);
-
-        // 🌟 KUNCINYA: Jangan di-clone! Masukkan objek order asli hasil update tadi
-        userNotifikasi.setOrder(order);
-        userNotifikasi.setUser(user);
-
-        // Simpan Notifikasi (Hanya akan menambah 1 baris di tabel usernotifikasi)
-        userNotifikasiRepository.save(userNotifikasi);
+        buatNotifikasi(order);
 
         return "Pesanan sudah terupdate";
     }
 
     public List<Order> viewPesanan() {
-        if (orderRepository.findAll().isEmpty()) {
-            throw new RuntimeException("Tidak ada pesanan");
-        }
-
         return orderRepository.findAll();
     }
 
     public String uploadInvoice(MultipartFile invoice, Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pesanan tidak ditemukan"));
+        if (invoice == null || invoice.isEmpty()) {
+            throw new RuntimeException("File invoice wajib diunggah");
+        }
         try {
             String urlImage = fileStorageService.uploadFile(invoice);
             order.setUrlInvoice(urlImage);
-            orderRepository.save(order);
-            if (order.getStatusPengiriman().equals("Tiba-di-Tujuan")) {
+            boolean jadiSelesai = "ONGOING".equals(order.getStatus())
+                    && "Tiba-di-Tujuan".equals(order.getStatusPengiriman());
+            if (jadiSelesai) {
                 order.setStatus("DONE");
-                orderRepository.save(order);
+            }
+            orderRepository.save(order);
+            if (jadiSelesai) {
+                buatNotifikasi(order);
             }
             return urlImage;
         } catch (IOException e) {
-            return e.getMessage();
+            throw new RuntimeException("Gagal mengunggah invoice: " + e.getMessage());
         }
     }
 }
