@@ -20,7 +20,6 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // setUser yang juga sync ke localStorage supaya tidak hilang saat refresh
   const setUser = (updater) => {
     setUserState((prev) => {
       const next = typeof updater === "function" ? updater(prev) : updater;
@@ -33,13 +32,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.post("/auth/login", { email, password });
 
-      // Backend mengembalikan token dalam string panjang di res.data.data
-      // Contoh: "Berhasil login sebagai ADMIN ini tokennya = eyJ..."
       const raw = res.data?.data || res.data;
       let token = null;
 
       if (typeof raw === "string") {
-        // Ekstrak token dari string "... = <token>"
         const match = raw.match(/=\s*(eyJ[A-Za-z0-9._-]+)/);
         token = match ? match[1] : null;
       } else if (typeof raw === "object" && raw?.token) {
@@ -50,16 +46,21 @@ export const AuthProvider = ({ children }) => {
         return { ok: false, message: "Login gagal: token tidak diterima" };
       }
 
-      // Decode payload dari JWT untuk ambil username/role
-      let userData = { email };
+      let payload = {};
       try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        userData = {
-          email: payload.sub || email,
-          name: payload.username || email,
-          role: payload.role || "ADMIN",
-        };
+        const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+        payload = JSON.parse(atob(base64));
       } catch {}
+
+      if (payload.role !== "ADMIN") {
+        return { ok: false, message: "Akun ini bukan akun admin" };
+      }
+
+      const userData = {
+        email: payload.sub || email,
+        name: payload.username || email,
+        role: payload.role,
+      };
 
       localStorage.setItem("mpl_token", token);
       localStorage.setItem("mpl_user", JSON.stringify(userData));
