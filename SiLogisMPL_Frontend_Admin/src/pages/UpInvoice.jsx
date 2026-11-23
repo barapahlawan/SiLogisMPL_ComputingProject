@@ -109,12 +109,11 @@ export default function UpInvoice() {
       try {
         const response = await api.get(`/order/${id}`);
         const result = response.data?.data || response.data;
-        if (Array.isArray(result)) {
-          const isFound = result.some(o => String(o.id) === String(id));
-          setOrderExists(isFound);
-        }
+        // GET /order/{id} mengembalikan SATU objek pesanan (bukan array)
+        setOrderExists(Boolean(result && String(result.id) === String(id)));
       } catch (error) {
         console.error("Gagal memverifikasi manifes tujuan:", error);
+        setOrderExists(false);
       } finally {
         setFetchingOrder(false);
       }
@@ -161,7 +160,7 @@ export default function UpInvoice() {
       }
     } catch (error) {
       console.error("Gagal mengunggah file invoice:", error);
-      const errTxt = error.response?.data?.message || "Terjadi kesalahan internal server saat proses unggah.";
+      const errTxt = error.response?.data?.errors || error.response?.data?.message || "Terjadi kesalahan internal server saat proses unggah.";
       toast.error(errTxt);
     } finally {
       setLoading(false);
