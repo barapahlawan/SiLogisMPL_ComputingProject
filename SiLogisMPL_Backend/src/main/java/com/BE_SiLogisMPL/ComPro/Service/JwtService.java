@@ -32,10 +32,8 @@ public class JwtService {
                 .compact();
     }
 
-    private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(
-                java.util.Base64.getEncoder().encodeToString(SECRET_KEY.getBytes()));
-        return Keys.hmacShaKeyFor(keyBytes);
+        private Key getSignInKey() {
+        return Keys.hmacShaKeyFor(secretKey.getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
 
     public String extractEmail(String token) {
@@ -69,3 +67,4 @@ public class JwtService {
     }
 
 }
+
