@@ -253,7 +253,7 @@ export default function StatusPengiriman() {
       fetchActiveDeliveries();
     } catch (err) {
       console.error("Gagal menyimpan perubahan status pengiriman:", err);
-      toast.error("Gagal memperbarui status ke database Spring Boot.");
+      toast.error(err.response?.data?.errors || "Gagal memperbarui status pengiriman.");
     } finally {
       setSaving(false);
     }
