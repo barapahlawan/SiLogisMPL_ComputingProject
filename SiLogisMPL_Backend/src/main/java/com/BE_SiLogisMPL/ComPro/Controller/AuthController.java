@@ -44,6 +44,7 @@ public class AuthController {
     }
 
     @PostMapping("/createAdmin")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public WebResponse<String> createAdmin(@Valid @RequestBody RegisterAdminDTO registerAdminDTO) {
         String token = authService.createAdmin(registerAdminDTO);
         return WebResponse.<String>builder()
@@ -53,3 +54,4 @@ public class AuthController {
                 .build();
     }
 }
+
