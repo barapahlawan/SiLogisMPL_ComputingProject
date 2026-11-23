@@ -112,6 +112,8 @@ function SuccessModal({ open, onClose }) {
 export default function ProfilPerusahaan() {
   const [activeSection, setActiveSection] = useState("hero");
   const contentRef = useRef(null);
+  // Simpan infoKilat asli dari DB supaya field yang tidak ada di form (mis. ikon) tidak hilang saat disimpan
+  const infoKilatAsliRef = useRef([]);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [imageFile, setImageFile] = useState(null);
@@ -202,6 +204,8 @@ export default function ProfilPerusahaan() {
             altText: data.altText || ""
           });
 
+          infoKilatAsliRef.current = Array.isArray(data.infoKilat) ? data.infoKilat : [];
+
           setSiapaKamiForm({
             judulSeksi: data.judulSeksiSiapaKami || "",
             paragrafUtama: data.paragrafUtama || "",
@@ -254,7 +258,10 @@ export default function ProfilPerusahaan() {
                 idAsli: l.id || "",
                 nama: l.nama || "",
                 icon: l.ikon || "",
-                desc: l.deskripsi || ""
+                desc: l.deskripsi || "",
+                // Tidak ada input-nya di form, tapi nilainya dipertahankan saat disimpan
+                tarifEst: l.tarifEst || "",
+                estimasi: l.estimasi || ""
               }))
             });
           }
@@ -300,9 +307,6 @@ export default function ProfilPerusahaan() {
       const fd = new FormData();
 
       const jsonPayload = {
-        username: "raka_riesta",
-        email: "raka@email.com",
-        noTelepon: "081234567890",
         headlineBaris1: heroForm.headline1,
         headlineBaris2: heroForm.headline2,
         headlineBaris3: heroForm.headline3,
@@ -313,7 +317,7 @@ export default function ProfilPerusahaan() {
         angkaStatistik2: heroForm.stat2,
         labelStatistik2: heroForm.statLabel2,
         teksBadge: heroForm.badgeText,
-        urlGambarManual: heroForm.imgUrl,
+        urlGambar: heroForm.imgUrl, // nama field di backend: urlGambar
         altText: heroForm.altText,
 
         judulSeksiSiapaKami: siapaKamiForm.judulSeksi,
@@ -344,8 +348,8 @@ export default function ProfilPerusahaan() {
           nama: l.nama,
           ikon: l.icon,
           deskripsi: l.desc,
-          tarifEst: "Mulai Rp 5.000/Kg",
-          estimasi: "2-3 Hari Kerja"
+          tarifEst: l.tarifEst || "Mulai Rp 5.000/Kg",
+          estimasi: l.estimasi || "2-3 Hari Kerja"
         })),
 
         judulSeksiKendaraan: kendaraanForm.judulSeksi,
@@ -357,13 +361,14 @@ export default function ProfilPerusahaan() {
           status: k.tipe,
           img: k.img
         })),
-        infoKilat: [
-          {
-            ikon: "clock-icon",
-            judul: "Operasional 24/7",
-            deskripsi: "Layanan non-stop tanpa libur"
-          }
-        ]
+        // Diambil dari 4 isian Info Kilat di form "Siapa Kami" (sebelumnya selalu tertimpa 1 data tetap)
+        infoKilat: [1, 2, 3, 4]
+          .map((n, i) => ({
+            ...(infoKilatAsliRef.current[i] || {}),
+            judul: siapaKamiForm[`label${n}`] || "",
+            deskripsi: siapaKamiForm[`value${n}`] || ""
+          }))
+          .filter((info) => info.judul || info.deskripsi)
       };
 
       const jsonBlob = new Blob([JSON.stringify(jsonPayload)], { type: "application/json" });
