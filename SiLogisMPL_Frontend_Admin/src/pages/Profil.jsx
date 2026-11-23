@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useData } from "../contexts/DataContext";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api.js";
@@ -8,7 +9,8 @@ import { toast } from "sonner";
 
 export default function Profil() {
   const { setProfile } = useData();
-  const { setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
+  const navigate = useNavigate();
 
   // ── 1. INITIAL STATE DIBUAT KOSONG (TIDAK STATIS / MENUNGGU DATA BE) ──
   const [form, setForm] = useState({
@@ -69,6 +71,16 @@ export default function Profil() {
         email: form.email,
         noTelepon: form.noTelepon, // Menggunakan noTelepon agar konsisten dan tidak hilang saat diketik
       });
+
+      // Token login menyimpan email lama -> kalau email diganti, wajib login ulang
+      const emailLama = (user?.email || "").trim().toLowerCase();
+      const emailBaru = (form.email || "").trim().toLowerCase();
+      if (emailLama && emailBaru && emailLama !== emailBaru) {
+        toast.success("Email berhasil diubah. Silakan login ulang dengan email baru.");
+        logout();
+        navigate("/login", { replace: true });
+        return;
+      }
 
       // Update DataContext global
       setProfile(form);
